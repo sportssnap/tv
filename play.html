@@ -431,9 +431,20 @@
     }
   }
 
-  function loadIframe(url) {
+  function loadIframe(url, sandbox) {
     videoEl.style.display  = 'none';
     iframeEl.style.display = 'block';
+
+    if (sandbox === true || sandbox === 'yes' || sandbox === 1) {
+      // Allow scripts + same-origin so the player works,
+      // but block popups, top-navigation and form submissions
+      iframeEl.setAttribute('sandbox',
+        'allow-scripts allow-same-origin allow-presentation allow-orientation-lock');
+    } else {
+      // No sandbox — full trust (default behaviour)
+      iframeEl.removeAttribute('sandbox');
+    }
+
     iframeEl.src = url;
     iframeOverlay.classList.add('active');
     showLoader(false);
@@ -461,11 +472,13 @@
         if (stream.drm) drmConfig = stream.drm;
       }
 
+      let sandboxFlag = (typeof stream === 'object') ? stream.sandbox : false;
+
       const type = (typeof stream === 'object' && (stream.iframe || stream.type === 'iframe'))
         ? 'iframe' : detectType(url);
 
       if (type === 'hls' || type === 'dash') await initShaka(url, drmConfig);
-      else loadIframe(url);
+      else loadIframe(url, sandboxFlag);
 
     } catch (err) { console.error(err); showError(); }
   }
