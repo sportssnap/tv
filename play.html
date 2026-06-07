@@ -3,10 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Sports Snap TV - Shaka Player</title>
+<title>Sports Snap TV - Shaka UI Player</title>
 
-<!-- Shaka Player -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.7.11/shaka-player.compiled.js"></script>
+<!-- Shaka Player UI -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/shaka-player/dist/controls.css">
+<script src="https://cdn.jsdelivr.net/npm/shaka-player/dist/shaka-player.ui.js"></script>
 
 <style>
 body {
@@ -16,13 +17,14 @@ body {
 }
 
 #video-container {
-    position: relative;
     width: 100%;
     height: 100vh;
+    position: relative;
     background: black;
 }
 
-video {
+/* Shaka UI fills screen */
+.shaka-video-container {
     width: 100%;
     height: 100%;
 }
@@ -37,11 +39,12 @@ video {
 
 #running-banner {
     position: absolute;
-    bottom: 80px;
+    bottom: 70px;
     width: 100%;
     color: white;
     background: rgba(0,0,0,0.6);
     overflow: hidden;
+    z-index: 5;
 }
 
 #banner-text {
@@ -62,6 +65,7 @@ video {
     left: 50%;
     transform: translate(-50%,-50%);
     color: white;
+    z-index: 100;
 }
 </style>
 </head>
@@ -70,9 +74,10 @@ video {
 
 <div id="video-container">
 
-<div class="loading" id="loading">Loading...</div>
+<div id="loading" class="loading">Loading...</div>
 
-<video id="video" controls autoplay></video>
+<!-- Video Element -->
+<video id="video" autoplay playsinline></video>
 
 <img id="logo" src="https://i.ibb.co/wzpjWHt/Sports-Snap-circle.png">
 
@@ -85,13 +90,14 @@ Join @sportssnapofficial | www.sportssnap.net
 </div>
 
 <script>
-// -------------------- GET PARAM --------------------
+
+// ---------------- GET PARAM ----------------
 function getParam(name){
     return new URLSearchParams(window.location.search).get(name);
 }
 
-// -------------------- INIT SHAKA --------------------
-async function initShaka(){
+// ---------------- INIT SHAKA UI ----------------
+async function initPlayer(){
 
     const video = document.getElementById('video');
 
@@ -104,8 +110,30 @@ async function initShaka(){
 
     const player = new shaka.Player(video);
 
+    // 🔥 UI CONTROLS
+    const ui = new shaka.ui.Overlay(player, document.getElementById('video-container'), video);
+
+    const config = {
+        controlPanelElements: [
+            'play_pause',
+            'time_and_duration',
+            'spacer',
+            'mute',
+            'volume',
+            'fullscreen',
+            'overflow_menu'
+        ],
+        overflowMenuButtons: [
+            'quality',
+            'playback_rate',
+            'picture_in_picture'
+        ]
+    };
+
+    ui.configure(config);
+
     player.addEventListener('error', (e) => {
-        console.error('Shaka Error', e);
+        console.error(e);
     });
 
     const channel = getParam('shaka_sportssnap');
@@ -115,7 +143,6 @@ async function initShaka(){
         return;
     }
 
-    // Load JSON
     fetch('https://sportssnap.github.io/playlist/stream.json')
     .then(res => res.json())
     .then(async data => {
@@ -132,14 +159,15 @@ async function initShaka(){
             document.getElementById('loading').style.display = "none";
         } catch (err) {
             console.error(err);
-            document.getElementById('loading').innerText = "Failed to load stream";
+            document.getElementById('loading').innerText = "Stream Failed";
         }
 
     });
 
 }
 
-document.addEventListener('DOMContentLoaded', initShaka);
+document.addEventListener('DOMContentLoaded', initPlayer);
+
 </script>
 
 </body>
