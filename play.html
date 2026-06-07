@@ -1,212 +1,35 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Sports Snap TV</title>
+ui.configure({
+    addSeekBar: true,
 
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/shaka-player@4.7.11/dist/controls.css">
-<script src="https://cdn.jsdelivr.net/npm/shaka-player@4.7.11/dist/shaka-player.ui.js"></script>
+    // 🔥 Mobile optimized controls layout
+    controlPanelElements: [
+        'play_pause',
+        'rewind',
+        'fast_forward',
+        'time_and_duration',
+        'spacer',
+        'mute',
+        'volume',
+        'fullscreen'
+    ],
 
-<style>
-html, body {
-    margin: 0;
-    padding: 0;
-    background: black;
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
-    font-family: Arial;
-}
+    // 🔥 Cleaner overflow menu (mobile friendly)
+    overflowMenuButtons: [
+        'quality',
+        'playback_rate',
+        'picture_in_picture'
+    ],
 
-/* FULL RESPONSIVE PLAYER */
-#video-container {
-    position: relative;
-    width: 100vw;
-    height: 100vh;
-    background: black;
-}
+    // 🔥 Mobile behavior tuning
+    fadeDelay: 2,              // controls hide faster
+    doubleClickForFullscreen: true,
+    seekBarColors: {
+        base: 'rgba(255,255,255,0.3)',
+        buffered: 'rgba(255,255,255,0.5)',
+        played: '#ff0000'
+    },
 
-/* Shaka fills entire screen */
-video {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-}
-
-/* Logo */
-#logo {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    width: 45px;
-    z-index: 50;
-    pointer-events: none;
-}
-
-/* Banner */
-#running-banner {
-    position: absolute;
-    bottom: 60px;
-    width: 100%;
-    z-index: 40;
-    background: rgba(0,0,0,0.6);
-    overflow: hidden;
-}
-
-#banner-text {
-    display: inline-block;
-    white-space: nowrap;
-    padding-left: 100%;
-    animation: scroll 14s linear infinite;
-    color: white;
-    font-size: 14px;
-}
-
-@keyframes scroll {
-    from { transform: translateX(0); }
-    to { transform: translateX(-100%); }
-}
-
-/* Loading */
-#loading {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%,-50%);
-    color: white;
-    z-index: 100;
-    font-size: 16px;
-}
-
-/* Mobile optimization */
-@media (max-width: 768px) {
-    #logo {
-        width: 35px;
-    }
-
-    #banner-text {
-        font-size: 12px;
-    }
-}
-</style>
-</head>
-
-<body>
-
-<div id="video-container">
-
-<div id="loading">Loading stream...</div>
-
-<video id="video" autoplay playsinline></video>
-
-<img id="logo" src="https://i.ibb.co/wzpjWHt/Sports-Snap-circle.png">
-
-<div id="running-banner">
-<div id="banner-text">
-Join @sportssnapofficial | www.sportssnap.net | Sports Snap Live Streaming
-</div>
-</div>
-
-</div>
-
-<script>
-
-// ---------------- PARAM ----------------
-function getParam(name){
-    return new URLSearchParams(window.location.search).get(name);
-}
-
-// ---------------- INIT ----------------
-async function init(){
-
-    const video = document.getElementById('video');
-    const loading = document.getElementById('loading');
-
-    if(!shaka.Player.isBrowserSupported()){
-        loading.innerText = "Browser Not Supported";
-        return;
-    }
-
-    shaka.polyfill.installAll();
-
-    const player = new shaka.Player(video);
-
-    // 🔥 STABLE CONFIG (important for mobile)
-    player.configure({
-        streaming: {
-            bufferingGoal: 20,
-            rebufferingGoal: 2,
-            bufferBehind: 30,
-            autoLowLatencyMode: true
-        }
-    });
-
-    // UI OVERLAY
-    const ui = new shaka.ui.Overlay(
-        player,
-        document.getElementById('video-container'),
-        video
-    );
-
-    ui.configure({
-        controlPanelElements: [
-            'play_pause',
-            'time_and_duration',
-            'spacer',
-            'mute',
-            'volume',
-            'fullscreen',
-            'overflow_menu'
-        ],
-        overflowMenuButtons: [
-            'quality',
-            'playback_rate',
-            'picture_in_picture'
-        ],
-        addSeekBar: true
-    });
-
-    // Error handling
-    player.addEventListener('error', (e) => {
-        console.error('Shaka Error', e);
-    });
-
-    const channel = getParam('shaka_sportssnap');
-
-    if(!channel){
-        loading.innerText = "No Channel Selected";
-        return;
-    }
-
-    try {
-        const res = await fetch('https://sportssnap.github.io/playlist/stream.json');
-        const data = await res.json();
-
-        const url = data[channel];
-
-        if(!url){
-            loading.innerText = "Channel Not Found";
-            return;
-        }
-
-        await player.load(url);
-
-        loading.style.display = "none";
-
-        // 🔥 AUTO FIT FOR ALL DEVICES
-        video.style.width = "100%";
-        video.style.height = "100%";
-
-    } catch (err) {
-        console.error(err);
-        loading.innerText = "Failed to load stream";
-    }
-}
-
-document.addEventListener('DOMContentLoaded', init);
-
-</script>
-
-</body>
-</html>
+    // 🔥 Bigger touch responsiveness
+    largePlayButton: true,
+    seekBarDragging: true
+});
