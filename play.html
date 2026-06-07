@@ -7,17 +7,10 @@
   
   <!-- Shaka Player -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.16.3/shaka-player.compiled.min.js"></script>
-  
-  <!-- Shaka Player UI CSS -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.16.3/controls.css" />
 
   <style>
-    body { 
-      margin: 0; padding: 0; 
-      background: #000; 
-      font-family: Arial, sans-serif; 
-      color: white;
-    }
+    body { margin: 0; padding: 0; background: #000; font-family: Arial, sans-serif; color: white; }
     #video-container {
       max-width: 1180px;
       margin: 20px auto;
@@ -32,89 +25,35 @@
       position: relative;
     }
     #logo {
-      position: absolute; 
-      top: 15px; 
-      right: 15px; 
-      width: 70px; 
-      z-index: 100;
-      border-radius: 50%;
-      box-shadow: 0 0 15px rgba(255,0,64,0.5);
+      position: absolute; top: 15px; right: 15px; width: 70px; z-index: 100;
+      border-radius: 50%; box-shadow: 0 0 15px rgba(255,0,64,0.5);
     }
     #running-banner {
-      position: absolute; 
-      bottom: 75px; 
-      left: 0; 
-      width: 100%;
-      background: rgba(0,0,0,0.85); 
-      color: white; 
-      padding: 12px 0;
-      z-index: 90; 
-      text-align: center; 
-      overflow: hidden;
+      position: absolute; bottom: 75px; left: 0; width: 100%;
+      background: rgba(0,0,0,0.85); color: white; padding: 12px 0;
+      z-index: 90; text-align: center; overflow: hidden;
     }
     #banner-text {
-      display: inline-block; 
-      white-space: nowrap; 
-      animation: scroll 20s linear infinite;
+      display: inline-block; white-space: nowrap; animation: scroll 20s linear infinite;
       font-size: 17px;
     }
-    @keyframes scroll { 
-      0% { transform: translateX(100%); } 
-      100% { transform: translateX(-100%); } 
-    }
+    @keyframes scroll { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
     
-    .popup { 
-      display: none; 
-      position: fixed; 
-      inset: 0; 
-      background: rgba(0,0,0,0.95); 
-      z-index: 1000; 
-      justify-content: center; 
-      align-items: center; 
-    }
+    .popup { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 1000; justify-content: center; align-items: center; }
     .popup-content {
-      background: #111; 
-      padding: 30px; 
-      border-radius: 12px; 
-      text-align: center;
-      border: 3px solid #FF0040; 
-      max-width: 360px; 
-      color: white; 
-      position: relative;
+      background: #111; padding: 30px; border-radius: 12px; text-align: center;
+      border: 3px solid #FF0040; max-width: 360px; color: white; position: relative;
     }
     .close-btn {
-      position: absolute; 
-      top: -15px; 
-      right: -15px; 
-      background: #FF0040; 
-      color: white;
-      border: none; 
-      width: 36px; 
-      height: 36px; 
-      border-radius: 50%; 
-      font-size: 24px; 
-      cursor: pointer;
+      position: absolute; top: -15px; right: -15px; background: #FF0040; color: white;
+      border: none; width: 36px; height: 36px; border-radius: 50%; font-size: 24px; cursor: pointer;
     }
     .error-msg {
-      color: #FF0040;
-      text-align: center;
-      padding: 120px 20px;
-      font-size: 19px;
+      color: #FF0040; text-align: center; padding: 100px 20px; font-size: 18px;
     }
     .loading {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      color: #FF0040;
-      font-size: 20px;
-      z-index: 10;
-    }
-
-    /* Shaka UI Improvements */
-    .shaka-video-container {
-      width: 100% !important;
-      height: 100% !important;
+      position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+      color: #FF0040; font-size: 20px; z-index: 10;
     }
   </style>
 </head>
@@ -169,60 +108,51 @@
     function initShakaPlayer() {
       container.innerHTML = `
         <div class="loading">Loading Stream...</div>
-        <video id="shaka-video" class="shaka-video-container" controls autoplay></video>
+        <video id="shaka-video" controls autoplay style="width:100%; height:100%;"></video>
       `;
 
       const video = document.getElementById('shaka-video');
-
       shaka.polyfill.installAll();
 
       const player = new shaka.Player(video);
 
-      // Enable Shaka's rich UI controls
+      // Shaka UI with good controls
       const ui = new shaka.ui.Overlay(player, container, video);
-      const uiConfig = {
-        controlPanelElements: [
-          'play_pause', 'time_and_duration', 'spacer', 
-          'mute', 'volume', 'quality', 'captions', 
-          'fullscreen', 'overflow_menu'
-        ],
-        overflowMenuButtons: ['statistics', 'quality', 'language', 'cast'],
-        seekBarColors: {
-          base: 'rgba(255, 255, 255, 0.3)',
-          buffered: 'rgba(255, 255, 255, 0.5)',
-          played: '#FF0040'
-        }
-      };
-      ui.configure(uiConfig);
+      ui.configure({
+        controlPanelElements: ['play_pause', 'time_and_duration', 'spacer', 'mute', 'volume', 'quality', 'fullscreen'],
+        overflowMenuButtons: ['quality', 'statistics'],
+        seekBarColors: { base: 'rgba(255,255,255,0.3)', buffered: 'rgba(255,255,255,0.6)', played: '#FF0040' }
+      });
 
-      // Better configuration for sports/live streams
+      // Optimized config for HLS sports streams
       player.configure({
         streaming: {
-          bufferBehind: 40,
-          bufferingGoal: 25,
-          rebufferingGoal: 15,
-          retryParameters: {
-            maxAttempts: 6,
-            baseDelay: 800,
-            backoffFactor: 1.8,
-            timeout: 30000
-          }
+          bufferBehind: 30,
+          bufferingGoal: 20,
+          rebufferingGoal: 12,
+          retryParameters: { maxAttempts: 8, baseDelay: 500, backoffFactor: 1.5 }
         },
-        abr: {
-          enabled: true,
-          defaultBandwidthEstimate: 2000000
+        abr: { enabled: true },
+        manifest: {
+          defaultPresentationDelay: 0,
+          availabilityWindowOverride: 60
         }
       });
 
       player.load(streamUrl)
         .then(() => {
-          console.log('✅ Shaka Player loaded successfully');
+          console.log('✅ Stream loaded successfully');
           const loading = container.querySelector('.loading');
           if (loading) loading.remove();
         })
         .catch(err => {
           console.error('Shaka Error:', err);
-          container.innerHTML = `<div class="error-msg">❌ Unable to play stream.<br>Please try again later.</div>`;
+          container.innerHTML = `
+            <div class="error-msg">
+              ❌ Unable to play stream.<br><br>
+              <small style="color:#aaa;">Error: ${err.code || err.message}</small><br><br>
+              Try refreshing or use another channel.
+            </div>`;
         });
     }
 
