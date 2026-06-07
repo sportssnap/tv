@@ -60,19 +60,27 @@
       z-index: 5;
     }
 
-    /* ── IFRAME OVERLAY — sits above iframe, below ticker/logo ── */
-    /* Transparent layer that blocks iframe's own fullscreen & shows our UI */
+    /* ── IFRAME OVERLAY — sits above iframe, blocks all touch on mobile ── */
     #iframe-overlay {
       display: none;
       position: absolute;
       inset: 0;
       z-index: 20;
-      /* fully transparent — lets iframe video show through, but catches pointer events at edges */
+      /* Desktop: transparent, only fs-btn is clickable */
       pointer-events: none;
     }
     #iframe-overlay.active { display: block; }
 
-    /* Top-left: branding bar */
+    /* On touch/mobile: block ALL pointer events on the whole overlay
+       so none of the iframe's own controls can be tapped */
+    @media (hover: none) and (pointer: coarse) {
+      #iframe-overlay.active {
+        pointer-events: all;
+        background: transparent;
+      }
+    }
+
+    /* Top-left: branding badge */
     #iframe-overlay .ov-logo {
       position: absolute;
       top: 12px;
@@ -99,26 +107,37 @@
     }
     #iframe-overlay .ov-logo span em { color: var(--red); font-style: normal; }
 
-    /* Bottom-right: fullscreen button */
+    /* Bottom-right: our fullscreen button — always clickable */
     #iframe-overlay .ov-fs-btn {
       position: absolute;
       bottom: 10px;
       right: 10px;
-      pointer-events: all;  /* this one is clickable */
-      width: 40px; height: 40px;
-      background: rgba(0,0,0,0.65);
-      border: 1px solid rgba(255,255,255,0.2);
+      pointer-events: all;
+      width: 44px; height: 44px;
+      background: rgba(0,0,0,0.7);
+      border: 1px solid rgba(255,255,255,0.25);
       border-radius: 8px;
       display: flex; align-items: center; justify-content: center;
       cursor: pointer;
       transition: background 0.15s;
       backdrop-filter: blur(6px);
       -webkit-backdrop-filter: blur(6px);
+      /* larger tap target on mobile */
+      touch-action: manipulation;
     }
-    #iframe-overlay .ov-fs-btn:hover { background: rgba(232,0,29,0.5); border-color: var(--red); }
-    #iframe-overlay .ov-fs-btn svg { width: 20px; height: 20px; fill: #fff; }
+    #iframe-overlay .ov-fs-btn:hover,
+    #iframe-overlay .ov-fs-btn:active { background: rgba(232,0,29,0.6); border-color: var(--red); }
+    #iframe-overlay .ov-fs-btn svg { width: 22px; height: 22px; fill: #fff; }
 
-    @media (max-width: 400px) {
+    /* Mobile: make fs button bigger and more prominent */
+    @media (hover: none) and (pointer: coarse) {
+      #iframe-overlay .ov-fs-btn {
+        width: 52px; height: 52px;
+        bottom: 14px; right: 14px;
+        background: rgba(0,0,0,0.75);
+        border-color: rgba(232,0,29,0.6);
+      }
+      #iframe-overlay .ov-fs-btn svg { width: 26px; height: 26px; }
       #iframe-overlay .ov-logo span { display: none; }
       #iframe-overlay .ov-logo { padding: 5px; }
     }
