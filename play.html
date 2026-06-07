@@ -1,232 +1,73 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sports Snap TV</title>
-  <style>
-    body {
-      margin: 0;
-      padding: 0;
-      font-family: Arial, sans-serif;
-    }
-    #video-container {
-     max-width: 800px; /* Set maximum width */
-     margin: auto; /* Center on larger screens */
-    }
-    #video {
-     position: absolute;
-     top: 0;
-     left: 0;
-     width: 100%;
-     height: 100%; /* Set to 100% to fill the container */
-     
+<script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+<script>
+  function getQueryParameter(name) {
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get(name);
+  }
+
+  const key = getQueryParameter('sportssnap'); // ?sportssnap=barcelona
+  const video = document.getElementById('video');
+  const videoContainer = document.getElementById('video-container');
+
+  async function loadStream() {
+    if (!key) {
+      console.error("No sportssnap key provided in URL");
+      return;
     }
 
-    #logo {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      width: 50px;
-      z-index: 10;
-    }
-    /* Running banner styles */
-    #running-banner {
-      position: absolute;
-      bottom: 200px;
-      left: 0;
-      background-color: rgba(0, 0, 0, 0.7);
-      color: white;
-      padding: 5px 0;
-      z-index: 20;
-      width: 100%;
-      box-shadow: 0 -1px 5px rgba(0, 0, 0, 0.5);
-    }
-    #banner-text {
-      display: inline-block;
-      white-space: nowrap;
-      animation: scroll 10s linear infinite;
-      font-size: 18px;
-      padding-left: 100%;
-    }
-    @keyframes scroll {
-      0% {
-        transform: translateX(0);
+    try {
+      const response = await fetch("https://sportssnap.github.io/playlist/stream.json");
+      const data = await response.json();
+
+      const m3u8Url = data[key];
+
+      if (!m3u8Url) {
+        console.error("Stream key not found in JSON:", key);
+        return;
       }
-      100% {
-        transform: translateX(-100%);
-      }
-    }
-    #video-container:fullscreen #logo,
-    #video-container:-webkit-full-screen #logo {
-      position: fixed;
-      top: 10px;
-      right: 10px;
-      width: 100px;
-    }
-    
-    .popup {
-      display: none;
-      position: fixed;
-      color: #fff;
-      font-family: 'Roboto', sans-serif;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      z-index: 1000;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      transition: opacity 0.3s ease;
-    }
-
-    .popup-content {
-      background-color: #000000;
-      padding: 10px;
-      width: 80%;
-      max-width: 300px;
-      border-radius: 10px;
-      box-shadow: 0 4px 8px rgba(255, 0, 80, 0.2);
-      text-align: center;
-      position: relative;
-      animation: fadeIn 0.3s ease-out;
-      border: 2px solid #FF0000;
-    }
-
-    .close-btn {
-      position: absolute;
-      top: -8px;
-      right: -8px;
-      background-color: #FF0000;
-      color: #ffff;
-      border: none;
-      border-radius: 50%;
-      cursor: pointer;
-      font-size: 20px;
-      width: 24px;
-      height: 24px;
-      line-height: 24px;
-      text-align: center;
-    }
-
-    .join-btn {
-      display: inline-block;
-      padding: 8px 16px;
-      margin-top: 8px;
-      background-color: #000;
-      color: #FF0000;
-      text-decoration: none;
-      border: 2px solid #FF0000;
-      border-radius: 12px;
-      font-size: 14px;
-      text-transform: uppercase;
-      font-weight: bold;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
-  </style>
-  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-</head>
-<body>
-  <div id="video-container">
-    <video id="video" controls poster="https://i.ibb.co/0mLQWV1/sportssnap-net.png"></video>
-    <img id="logo" src="https://i.ibb.co/wzpjWHt/Sports-Snap-circle.png" alt="Logo">
-    <div id="running-banner">
-      <div id="banner-text">Join Our Telegram channel @sportssnapofficial for more updates!! | www.sportssnap.net</div>
-    </div>
-  </div>
-  
-  <div class="popup">
-    <div class="popup-content">
-      <button class="close-btn">×</button>
-      <h1>Join Us!</h1>
-      <p>Join Sports Snap Telegram channel for more updates!</p>
-      <a class="join-btn" href="https://t.me/sportssnapofficial" target="_blank">Join Now</a>
-    </div>
-  </div>
-
-  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
-  <script>
-    // Function to get query parameter by name
-    function getQueryParameter(name) {
-      const urlParams = new URLSearchParams(window.location.search);
-      return urlParams.get(name);
-    }
-
-    // Function to initialize and play the HLS stream
-    function playStream(m3u8Url) {
-      const video = document.getElementById('video');
-      const videoContainer = document.getElementById('video-container');
 
       if (Hls.isSupported()) {
         const hls = new Hls();
         hls.loadSource(m3u8Url);
         hls.attachMedia(video);
-        
-        // Enable fullscreen by double-clicking the video
-        video.addEventListener('dblclick', function() {
+
+        // fullscreen on double click
+        video.addEventListener('dblclick', function () {
           if (document.fullscreenElement) {
             document.exitFullscreen();
           } else {
             videoContainer.requestFullscreen();
           }
         });
+
       } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
         video.src = m3u8Url;
       } else {
-        console.error('HLS not supported on this browser.');
+        console.error('HLS not supported');
+      }
+
+    } catch (err) {
+      console.error("Error loading stream JSON:", err);
+    }
+  }
+
+  loadStream();
+
+  // Popup functionality (UNCHANGED)
+  document.addEventListener('DOMContentLoaded', function() {
+    let popupClosed = false;
+
+    function showPopup() {
+      if (!popupClosed) {
+        document.querySelector('.popup').style.display = 'flex';
       }
     }
 
-    // Get the key (e.g., 'barcelona') from the query parameter ?sportssnap=
-    const streamKey = getQueryParameter('sportssnap');
+    setTimeout(showPopup, 6000);
 
-    if (streamKey) {
-      // Fetch the playlist configuration from GitHub
-      fetch('https://sportssnap.github.io/playlist/stream.json')
-        .then(response => {
-          if (!response.ok) {
-            throw new Error('Network response was not ok');
-          }
-          return response.json();
-        })
-        .then(data => {
-          // Look up the URL using the key
-          const m3u8Url = data[streamKey];
-          if (m3u8Url) {
-            playStream(m3u8Url);
-          } else {
-            console.error('Stream key direct link not found in JSON:', streamKey);
-          }
-        })
-        .catch(error => {
-          console.error('Error fetching or parsing the stream JSON:', error);
-        });
-    } else {
-      console.error('No ?sportssnap= parameter provided in the URL.');
-    }
-    
-    // Popup functionality
-    document.addEventListener('DOMContentLoaded', function() {
-      let popupClosed = false;
-
-      function showPopup() {
-        if (!popupClosed) {
-          document.querySelector('.popup').style.display = 'flex';
-        }
-      }
-
-      setTimeout(showPopup, 6000); // Show popup after 6 seconds 
-
-      document.querySelector('.close-btn').addEventListener('click', function() {
-        document.querySelector('.popup').style.display = 'none';
-        popupClosed = true;
-      });
+    document.querySelector('.close-btn').addEventListener('click', function() {
+      document.querySelector('.popup').style.display = 'none';
+      popupClosed = true;
     });
-  </script>
-</body>
-</html>
+  });
+</script>
