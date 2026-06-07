@@ -4,18 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Sports Snap TV</title>
-
-  <!-- Shaka Player -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.7.11/shaka-player.ui.min.js" crossorigin="anonymous"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.7.11/controls.min.css" crossorigin="anonymous">
-
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800&family=Barlow:wght@400;500&display=swap');
 
     :root {
       --red: #e8001d;
       --gray: rgba(255,255,255,0.55);
-      --panel: rgba(10,10,10,0.92);
       --ticker-h: 34px;
     }
 
@@ -30,60 +26,57 @@
       user-select: none;
     }
 
-    /* ── Shell ── */
+    /* ── SHELL — this is what goes fullscreen ── */
     #player-shell {
       position: relative;
       width: 100%; height: 100%;
       background: #000;
+      display: flex;
+      flex-direction: column;
     }
 
-    /* ── Video / Iframe ── */
-    #video-el {
+    /* ── Shaka wrapper fills everything above ticker ── */
+    #shaka-wrapper {
+      position: relative;
+      flex: 1;
+      min-height: 0;
+      background: #000;
+    }
+    #shaka-wrapper video {
       width: 100%;
-      /* leave room at bottom for ticker */
-      height: calc(100% - var(--ticker-h));
+      height: 100%;
       object-fit: contain;
       background: #000;
-      display: block;
     }
 
+    /* ── Iframe fallback ── */
     #iframe-el {
-      width: 100%;
-      height: calc(100% - var(--ticker-h));
+      position: absolute;
+      inset: 0;
+      width: 100%; height: 100%;
       border: none;
       background: #000;
       display: none;
+      z-index: 5;
     }
 
-    /* ── Shaka wrapper must fill the video area ── */
-    #shaka-wrapper {
-      position: absolute;
-      top: 0; left: 0; right: 0;
-      bottom: var(--ticker-h);
-    }
-    #shaka-wrapper video {
-      width: 100%; height: 100%;
-      object-fit: contain;
-      background: #000;
-    }
-
-    /* ── LOGO — fixed so it survives fullscreen in all browsers ── */
+    /* ── LOGO — absolute inside shell, so it moves with fullscreen ── */
     #logo-badge {
-      position: fixed;
-      top: 14px;
-      right: 14px;
-      z-index: 2147483647;
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      z-index: 9999;
       pointer-events: none;
       display: flex;
       align-items: center;
       gap: 7px;
-      background: rgba(0,0,0,0.6);
+      background: rgba(0,0,0,0.65);
       border: 1px solid rgba(232,0,29,0.5);
       border-radius: 30px;
       padding: 5px 12px 5px 6px;
       backdrop-filter: blur(8px);
       -webkit-backdrop-filter: blur(8px);
-      box-shadow: 0 0 18px rgba(232,0,29,0.3);
+      box-shadow: 0 0 16px rgba(232,0,29,0.3);
     }
     #logo-badge img {
       width: 28px; height: 28px;
@@ -105,19 +98,18 @@
       #logo-badge { padding: 5px; }
     }
 
-    /* ── TICKER — fixed at bottom, always visible including fullscreen ── */
+    /* ── TICKER — sits at bottom of shell as a real flex child ── */
     #ticker {
-      position: fixed;
-      bottom: 0; left: 0; right: 0;
+      flex-shrink: 0;
+      width: 100%;
       height: var(--ticker-h);
-      z-index: 2147483646;   /* just below logo */
-      background: rgba(0,0,0,0.82);
-      border-top: 1px solid rgba(232,0,29,0.4);
+      background: rgba(0,0,0,0.85);
+      border-top: 1px solid rgba(232,0,29,0.45);
       display: flex;
       align-items: center;
       overflow: hidden;
+      z-index: 9999;
     }
-
     .ticker-label {
       flex-shrink: 0;
       height: 100%;
@@ -132,13 +124,10 @@
       color: #fff;
       text-transform: uppercase;
       white-space: nowrap;
-      z-index: 1;
     }
-
     .ticker-track {
       flex: 1;
       overflow: hidden;
-      position: relative;
     }
     .ticker-inner {
       display: inline-flex;
@@ -151,10 +140,7 @@
       color: rgba(255,255,255,0.88);
       padding-right: 60px;
     }
-    .ticker-inner span::after {
-      content: ' ●  ';
-      color: var(--red);
-    }
+    .ticker-inner span::after { content: ' ●  '; color: var(--red); }
     @keyframes ticker-roll {
       from { transform: translateX(0); }
       to   { transform: translateX(-50%); }
@@ -163,8 +149,7 @@
     /* ── Loader ── */
     #loader {
       position: absolute;
-      top: 0; left: 0; right: 0;
-      bottom: var(--ticker-h);
+      top: 0; left: 0; right: 0; bottom: 0;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -185,23 +170,19 @@
     @keyframes spin { to { transform: rotate(360deg); } }
     #loader p {
       font-family: 'Barlow Condensed', sans-serif;
-      font-size: 12px;
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      color: var(--gray);
+      font-size: 12px; letter-spacing: 2px;
+      text-transform: uppercase; color: var(--gray);
     }
 
     /* ── Error ── */
     #error-msg {
       position: absolute;
-      top: 0; left: 0; right: 0;
-      bottom: var(--ticker-h);
+      top: 0; left: 0; right: 0; bottom: 0;
       display: none;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 10px;
-      z-index: 48;
+      gap: 10px; z-index: 48;
     }
     #error-msg.show { display: flex; }
     #error-msg svg { width: 40px; height: 40px; fill: var(--red); opacity: 0.7; }
@@ -211,18 +192,16 @@
       text-transform: uppercase; color: var(--gray);
     }
 
-    /* ── Shaka UI — push controls above ticker ── */
-    .shaka-controls-container {
-      bottom: 0 !important;
-    }
+    /* ── Shaka controls stay above ticker ── */
+    .shaka-controls-container { z-index: 100 !important; }
 
     /* ── Popup ── */
     #popup {
       display: none;
-      position: fixed;
+      position: absolute;
       inset: 0;
       background: rgba(0,0,0,0.82);
-      z-index: 9999;
+      z-index: 99999;
       align-items: center;
       justify-content: center;
       backdrop-filter: blur(4px);
@@ -240,117 +219,116 @@
       animation: popup-in 0.35s cubic-bezier(0.34,1.56,0.64,1) both;
     }
     @keyframes popup-in {
-      from { transform: scale(0.7); opacity: 0; }
-      to   { transform: scale(1);   opacity: 1; }
+      from { transform:scale(0.7); opacity:0; }
+      to   { transform:scale(1);   opacity:1; }
     }
     .popup-close {
-      position: absolute; top: -12px; right: -12px;
-      width: 28px; height: 28px;
-      background: var(--red); color: #fff;
-      border: none; border-radius: 50%;
-      font-size: 15px; font-weight: 700;
-      cursor: pointer;
-      display: flex; align-items: center; justify-content: center;
+      position: absolute; top:-12px; right:-12px;
+      width:28px; height:28px;
+      background:var(--red); color:#fff;
+      border:none; border-radius:50%;
+      font-size:15px; font-weight:700;
+      cursor:pointer;
+      display:flex; align-items:center; justify-content:center;
     }
-    .popup-logo { width: 54px; height: 54px; border-radius: 50%; margin-bottom: 12px; }
+    .popup-logo { width:54px; height:54px; border-radius:50%; margin-bottom:12px; }
     .popup-box h2 {
-      font-family: 'Barlow Condensed', sans-serif;
-      font-size: 22px; font-weight: 800;
-      text-transform: uppercase; color: #fff; margin-bottom: 6px;
+      font-family:'Barlow Condensed',sans-serif;
+      font-size:22px; font-weight:800;
+      text-transform:uppercase; color:#fff; margin-bottom:6px;
     }
-    .popup-box p { font-size: 13px; color: var(--gray); line-height: 1.5; margin-bottom: 16px; }
+    .popup-box p { font-size:13px; color:var(--gray); line-height:1.5; margin-bottom:16px; }
     .popup-btn {
-      display: inline-flex; align-items: center; gap: 8px;
-      padding: 10px 22px;
-      background: var(--red); color: #fff;
-      border-radius: 8px; text-decoration: none;
-      font-family: 'Barlow Condensed', sans-serif;
-      font-size: 15px; font-weight: 700; letter-spacing: 0.5px;
-      transition: background 0.15s;
+      display:inline-flex; align-items:center; gap:8px;
+      padding:10px 22px;
+      background:var(--red); color:#fff;
+      border-radius:8px; text-decoration:none;
+      font-family:'Barlow Condensed',sans-serif;
+      font-size:15px; font-weight:700; letter-spacing:0.5px;
+      transition:background 0.15s;
     }
-    .popup-btn:hover { background: #c0001a; }
+    .popup-btn:hover { background:#c0001a; }
+
+    /* ── Fullscreen: shell fills entire screen ── */
+    #player-shell:fullscreen,
+    #player-shell:-webkit-full-screen,
+    #player-shell:-moz-full-screen {
+      width: 100vw !important;
+      height: 100vh !important;
+    }
   </style>
 </head>
 <body>
 
-<!-- LOGO: fixed, always on top including fullscreen -->
-<div id="logo-badge">
-  <img src="https://i.ibb.co/wzpjWHt/Sports-Snap-circle.png" alt="Sports Snap" onerror="this.style.display='none'">
-  <span>Sports<em>Snap</em></span>
-</div>
-
-<!-- TICKER: fixed at bottom, always visible including fullscreen -->
-<div id="ticker">
-  <div class="ticker-label">LIVE</div>
-  <div class="ticker-track">
-    <div class="ticker-inner">
-      <span>Join our Telegram @sportssnapofficial for the latest live stream links &amp; updates</span>
-      <span>www.sportssnap.net — Your #1 destination for live sports streaming</span>
-      <span>HD &amp; 4K streams available — bookmark us and never miss a match!</span>
-      <!-- duplicate for seamless loop -->
-      <span>Join our Telegram @sportssnapofficial for the latest live stream links &amp; updates</span>
-      <span>www.sportssnap.net — Your #1 destination for live sports streaming</span>
-      <span>HD &amp; 4K streams available — bookmark us and never miss a match!</span>
-    </div>
-  </div>
-</div>
-
 <div id="player-shell">
 
-  <!-- Shaka wrapper (Shaka injects its UI here) -->
+  <!-- Shaka wrapper -->
   <div id="shaka-wrapper">
     <video id="video-el" autoplay playsinline preload="metadata"
            poster="https://i.ibb.co/0mLQWV1/sportssnap-net.png"></video>
+    <!-- Iframe inside shaka-wrapper so it's also inside shell -->
+    <iframe id="iframe-el" allowfullscreen allow="autoplay; encrypted-media; picture-in-picture"></iframe>
+    <!-- Loader / Error inside shaka-wrapper -->
+    <div id="loader"><div class="spinner-ring"></div><p>Loading stream…</p></div>
+    <div id="error-msg">
+      <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+      <p>Stream unavailable</p>
+    </div>
   </div>
 
-  <!-- Iframe fallback -->
-  <iframe id="iframe-el" allowfullscreen allow="autoplay; encrypted-media; picture-in-picture"></iframe>
-
-  <!-- Loader -->
-  <div id="loader">
-    <div class="spinner-ring"></div>
-    <p>Loading stream…</p>
+  <!-- TICKER: flex child of shell — always at bottom, survives fullscreen -->
+  <div id="ticker">
+    <div class="ticker-label">LIVE</div>
+    <div class="ticker-track">
+      <div class="ticker-inner">
+        <span>Join our Telegram @sportssnapofficial for the latest live stream links &amp; updates</span>
+        <span>www.sportssnap.net — Your #1 destination for live sports streaming</span>
+        <span>HD &amp; 4K streams available — bookmark us and never miss a match!</span>
+        <span>Join our Telegram @sportssnapofficial for the latest live stream links &amp; updates</span>
+        <span>www.sportssnap.net — Your #1 destination for live sports streaming</span>
+        <span>HD &amp; 4K streams available — bookmark us and never miss a match!</span>
+      </div>
+    </div>
   </div>
 
-  <!-- Error -->
-  <div id="error-msg">
-    <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
-    <p>Stream unavailable</p>
+  <!-- LOGO: absolute inside shell — moves with fullscreen -->
+  <div id="logo-badge">
+    <img src="https://i.ibb.co/wzpjWHt/Sports-Snap-circle.png" alt="Sports Snap" onerror="this.style.display='none'">
+    <span>Sports<em>Snap</em></span>
   </div>
 
-</div>
-
-<!-- Popup -->
-<div id="popup">
-  <div class="popup-box">
-    <button class="popup-close" id="popup-close">✕</button>
-    <img class="popup-logo" src="https://i.ibb.co/wzpjWHt/Sports-Snap-circle.png" alt="Sports Snap" onerror="this.style.display='none'">
-    <h2>Join Sports Snap</h2>
-    <p>Get the latest live stream links &amp; updates on our Telegram channel</p>
-    <a class="popup-btn" href="https://t.me/sportssnapofficial" target="_blank" rel="noopener">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M9.78 18.65l.28-4.23 7.68-6.92c.34-.31-.07-.46-.52-.19L7.74 13.3 3.64 12c-.88-.25-.89-.86.2-1.3l15.97-6.16c.73-.33 1.43.18 1.15 1.3l-2.72 12.81c-.19.91-.74 1.13-1.5.71L12.6 16.3l-1.99 1.93c-.23.23-.42.42-.83.42z"/></svg>
-      Join Telegram
-    </a>
+  <!-- Popup: inside shell so it works in fullscreen too -->
+  <div id="popup">
+    <div class="popup-box">
+      <button class="popup-close" id="popup-close">✕</button>
+      <img class="popup-logo" src="https://i.ibb.co/wzpjWHt/Sports-Snap-circle.png" alt="Sports Snap" onerror="this.style.display='none'">
+      <h2>Join Sports Snap</h2>
+      <p>Get the latest live stream links &amp; updates on our Telegram channel</p>
+      <a class="popup-btn" href="https://t.me/sportssnapofficial" target="_blank" rel="noopener">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M9.78 18.65l.28-4.23 7.68-6.92c.34-.31-.07-.46-.52-.19L7.74 13.3 3.64 12c-.88-.25-.89-.86.2-1.3l15.97-6.16c.73-.33 1.43.18 1.15 1.3l-2.72 12.81c-.19.91-.74 1.13-1.5.71L12.6 16.3l-1.99 1.93c-.23.23-.42.42-.83.42z"/></svg>
+        Join Telegram
+      </a>
+    </div>
   </div>
-</div>
+
+</div><!-- /player-shell -->
 
 <script>
 (function () {
   'use strict';
 
-  const videoEl   = document.getElementById('video-el');
-  const iframeEl  = document.getElementById('iframe-el');
-  const shakaWrap = document.getElementById('shaka-wrapper');
-  const loader    = document.getElementById('loader');
-  const errorMsg  = document.getElementById('error-msg');
-  const popup     = document.getElementById('popup');
-  const popupClose= document.getElementById('popup-close');
+  const shell      = document.getElementById('player-shell');
+  const shakaWrap  = document.getElementById('shaka-wrapper');
+  const videoEl    = document.getElementById('video-el');
+  const iframeEl   = document.getElementById('iframe-el');
+  const loader     = document.getElementById('loader');
+  const errorMsg   = document.getElementById('error-msg');
+  const popup      = document.getElementById('popup');
+  const popupClose = document.getElementById('popup-close');
 
-  /* ── Loader ── */
   function showLoader(v) { loader.classList.toggle('hidden', !v); }
   function showError()   { showLoader(false); errorMsg.classList.add('show'); }
 
-  /* ── Detect stream type from URL ── */
   function detectType(url) {
     if (!url) return 'unknown';
     const u = url.toLowerCase().split('?')[0];
@@ -359,65 +337,38 @@
     return 'iframe';
   }
 
-  /* ── Shaka Player ── */
   async function initShaka(url, drmConfig) {
     iframeEl.style.display = 'none';
-    shakaWrap.style.display = 'block';
     showLoader(true);
     errorMsg.classList.remove('show');
 
     shaka.polyfill.installAll();
-
     if (!shaka.Player.isBrowserSupported()) { showError(); return; }
 
     const player = new shaka.Player(videoEl);
+    new shaka.ui.Overlay(player, shakaWrap, videoEl);
 
-    // Shaka UI with default controls
-    const ui = new shaka.ui.Overlay(player, shakaWrap, videoEl);
-    ui.configure({
-      controlPanelElements: [
-        'play_pause',
-        'time_and_duration',
-        'spacer',
-        'mute',
-        'volume',
-        'quality',
-        'fullscreen'
-      ],
-      addSeekBar: true,
-      fadeDelay: 3
-    });
-
-    player.addEventListener('error', (e) => {
-      console.error('Shaka error', e.detail);
-      showError();
-    });
+    player.addEventListener('error', (e) => { console.error(e.detail); showError(); });
 
     if (drmConfig) player.configure({ drm: drmConfig });
-
-    player.configure({
-      streaming: { bufferingGoal: 20, rebufferingGoal: 5 },
-      abr: { enabled: true }
-    });
+    player.configure({ streaming: { bufferingGoal: 20, rebufferingGoal: 5 }, abr: { enabled: true } });
 
     try {
       await player.load(url);
       showLoader(false);
     } catch (err) {
-      console.error('Load failed', err);
+      console.error(err);
       showError();
     }
   }
 
-  /* ── Iframe fallback ── */
   function loadIframe(url) {
-    shakaWrap.style.display = 'none';
-    iframeEl.style.display  = 'block';
+    videoEl.style.display  = 'none';
+    iframeEl.style.display = 'block';
     iframeEl.src = url;
     showLoader(false);
   }
 
-  /* ── Main loader ── */
   async function loadStream() {
     const key = new URLSearchParams(window.location.search).get('sportssnap');
     if (!key) {
@@ -426,17 +377,13 @@
       document.querySelector('#error-msg p').textContent = 'No stream key provided';
       return;
     }
-
     showLoader(true);
     try {
-      const res  = await fetch('https://sportssnap.github.io/playlist/stream.json');
-      const data = await res.json();
+      const data   = await (await fetch('https://sportssnap.github.io/playlist/stream.json')).json();
       const stream = data[key];
-
       if (!stream) { showError(); return; }
 
       let url, drmConfig = null;
-
       if (typeof stream === 'string') {
         url = stream;
       } else {
@@ -445,29 +392,65 @@
       }
 
       const type = (typeof stream === 'object' && (stream.iframe || stream.type === 'iframe'))
-        ? 'iframe'
-        : detectType(url);
+        ? 'iframe' : detectType(url);
 
-      if (type === 'hls' || type === 'dash') {
-        await initShaka(url, drmConfig);
-      } else {
-        loadIframe(url);
-      }
+      if (type === 'hls' || type === 'dash') await initShaka(url, drmConfig);
+      else loadIframe(url);
 
-    } catch (err) {
-      console.error('Playlist fetch failed', err);
-      showError();
+    } catch (err) { console.error(err); showError(); }
+  }
+
+  /* ── Fullscreen: request on the SHELL so everything inside it is visible ── */
+  function goFullscreen() {
+    const el = shell;
+    if      (el.requestFullscreen)            el.requestFullscreen();
+    else if (el.webkitRequestFullscreen)      el.webkitRequestFullscreen();
+    else if (el.mozRequestFullScreen)         el.mozRequestFullScreen();
+    // Force landscape on mobile
+    if (screen.orientation && screen.orientation.lock) {
+      screen.orientation.lock('landscape').catch(() => {});
     }
   }
 
-  /* ── Popup ── */
+  function exitFullscreen() {
+    if      (document.exitFullscreen)          document.exitFullscreen();
+    else if (document.webkitExitFullscreen)    document.webkitExitFullscreen();
+    else if (document.mozCancelFullScreen)     document.mozCancelFullScreen();
+  }
+
+  function isFullscreen() {
+    return !!(document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement);
+  }
+
+  /* Unlock orientation when leaving fullscreen */
+  document.addEventListener('fullscreenchange',       onFsChange);
+  document.addEventListener('webkitfullscreenchange', onFsChange);
+  document.addEventListener('mozfullscreenchange',    onFsChange);
+  function onFsChange() {
+    if (!isFullscreen() && screen.orientation && screen.orientation.unlock) {
+      screen.orientation.unlock();
+    }
+  }
+
+  /* Override Shaka's fullscreen button to use shell instead of just the video */
+  document.addEventListener('click', (e) => {
+    const fsBtn = e.target.closest('.shaka-fullscreen-button, [aria-label="Full screen"], [aria-label="Exit full screen"]');
+    if (!fsBtn) return;
+    e.preventDefault(); e.stopPropagation();
+    isFullscreen() ? exitFullscreen() : goFullscreen();
+  }, true);
+
+  /* Double-click video also fullscreens the shell */
+  videoEl.addEventListener('dblclick', () => {
+    isFullscreen() ? exitFullscreen() : goFullscreen();
+  });
+
+  /* Popup */
   setTimeout(() => popup.classList.add('show'), 7000);
   popupClose.addEventListener('click', () => popup.classList.remove('show'));
   popup.addEventListener('click', (e) => { if (e.target === popup) popup.classList.remove('show'); });
 
-  /* ── Start ── */
   window.addEventListener('load', loadStream);
-
 })();
 </script>
 </body>
