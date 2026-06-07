@@ -60,6 +60,69 @@
       z-index: 5;
     }
 
+    /* ── IFRAME OVERLAY — sits above iframe, below ticker/logo ── */
+    /* Transparent layer that blocks iframe's own fullscreen & shows our UI */
+    #iframe-overlay {
+      display: none;
+      position: absolute;
+      inset: 0;
+      z-index: 20;
+      /* fully transparent — lets iframe video show through, but catches pointer events at edges */
+      pointer-events: none;
+    }
+    #iframe-overlay.active { display: block; }
+
+    /* Top-left: branding bar */
+    #iframe-overlay .ov-logo {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      pointer-events: none;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      background: rgba(0,0,0,0.65);
+      border: 1px solid rgba(232,0,29,0.5);
+      border-radius: 30px;
+      padding: 5px 12px 5px 6px;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      box-shadow: 0 0 16px rgba(232,0,29,0.3);
+    }
+    #iframe-overlay .ov-logo img {
+      width: 26px; height: 26px; border-radius: 50%; object-fit: cover;
+    }
+    #iframe-overlay .ov-logo span {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 700; font-size: 12px;
+      letter-spacing: 0.5px; color: #fff; text-transform: uppercase;
+    }
+    #iframe-overlay .ov-logo span em { color: var(--red); font-style: normal; }
+
+    /* Bottom-right: fullscreen button */
+    #iframe-overlay .ov-fs-btn {
+      position: absolute;
+      bottom: 10px;
+      right: 10px;
+      pointer-events: all;  /* this one is clickable */
+      width: 40px; height: 40px;
+      background: rgba(0,0,0,0.65);
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      transition: background 0.15s;
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+    }
+    #iframe-overlay .ov-fs-btn:hover { background: rgba(232,0,29,0.5); border-color: var(--red); }
+    #iframe-overlay .ov-fs-btn svg { width: 20px; height: 20px; fill: #fff; }
+
+    @media (max-width: 400px) {
+      #iframe-overlay .ov-logo span { display: none; }
+      #iframe-overlay .ov-logo { padding: 5px; }
+    }
+
     /* ── LOGO — absolute inside shell, so it moves with fullscreen ── */
     #logo-badge {
       position: absolute;
@@ -268,6 +331,17 @@
            poster="https://i.ibb.co/0mLQWV1/sportssnap-net.png"></video>
     <!-- Iframe inside shaka-wrapper so it's also inside shell -->
     <iframe id="iframe-el" allowfullscreen allow="autoplay; encrypted-media; picture-in-picture"></iframe>
+
+    <!-- Iframe overlay: our branding + fullscreen button on top of iframe -->
+    <div id="iframe-overlay">
+      <div class="ov-logo">
+        <img src="https://i.ibb.co/wzpjWHt/Sports-Snap-circle.png" alt="SS" onerror="this.style.display='none'">
+        <span>Sports<em>Snap</em></span>
+      </div>
+      <button class="ov-fs-btn" id="iframe-fs-btn" title="Fullscreen">
+        <svg id="iframe-fs-icon" viewBox="0 0 24 24"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg>
+      </button>
+    </div>
     <!-- Loader / Error inside shaka-wrapper -->
     <div id="loader"><div class="spinner-ring"></div><p>Loading stream…</p></div>
     <div id="error-msg">
@@ -317,14 +391,20 @@
 (function () {
   'use strict';
 
-  const shell      = document.getElementById('player-shell');
-  const shakaWrap  = document.getElementById('shaka-wrapper');
-  const videoEl    = document.getElementById('video-el');
-  const iframeEl   = document.getElementById('iframe-el');
-  const loader     = document.getElementById('loader');
-  const errorMsg   = document.getElementById('error-msg');
-  const popup      = document.getElementById('popup');
-  const popupClose = document.getElementById('popup-close');
+  const shell         = document.getElementById('player-shell');
+  const shakaWrap     = document.getElementById('shaka-wrapper');
+  const videoEl       = document.getElementById('video-el');
+  const iframeEl      = document.getElementById('iframe-el');
+  const iframeOverlay = document.getElementById('iframe-overlay');
+  const iframeFsBtn   = document.getElementById('iframe-fs-btn');
+  const iframeFsIcon  = document.getElementById('iframe-fs-icon');
+  const loader        = document.getElementById('loader');
+  const errorMsg      = document.getElementById('error-msg');
+  const popup         = document.getElementById('popup');
+  const popupClose    = document.getElementById('popup-close');
+
+  const FS_ENTER = 'M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z';
+  const FS_EXIT  = 'M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z';
 
   function showLoader(v) { loader.classList.toggle('hidden', !v); }
   function showError()   { showLoader(false); errorMsg.classList.add('show'); }
@@ -366,6 +446,7 @@
     videoEl.style.display  = 'none';
     iframeEl.style.display = 'block';
     iframeEl.src = url;
+    iframeOverlay.classList.add('active');
     showLoader(false);
   }
 
@@ -422,6 +503,11 @@
     return !!(document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement);
   }
 
+  /* Iframe overlay fullscreen button */
+  iframeFsBtn.addEventListener('click', () => {
+    isFullscreen() ? exitFullscreen() : goFullscreen();
+  });
+
   /* Unlock orientation when leaving fullscreen */
   document.addEventListener('fullscreenchange',       onFsChange);
   document.addEventListener('webkitfullscreenchange', onFsChange);
@@ -430,6 +516,8 @@
     if (!isFullscreen() && screen.orientation && screen.orientation.unlock) {
       screen.orientation.unlock();
     }
+    // Update iframe fullscreen icon
+    iframeFsIcon.querySelector('path').setAttribute('d', isFullscreen() ? FS_EXIT : FS_ENTER);
   }
 
   /* Override Shaka's fullscreen button to use shell instead of just the video */
