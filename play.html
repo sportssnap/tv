@@ -31,15 +31,13 @@
       position: relative;
       width: 100%; height: 100%;
       background: #000;
-      display: flex;
-      flex-direction: column;
+      overflow: hidden;
     }
 
-    /* ── Shaka wrapper fills everything above ticker ── */
+    /* ── Shaka wrapper fills the full shell ── */
     #shaka-wrapper {
-      position: relative;
-      flex: 1;
-      min-height: 0;
+      position: absolute;
+      inset: 0;
       background: #000;
     }
     #shaka-wrapper video {
@@ -86,26 +84,14 @@
       top: 12px;
       left: 12px;
       pointer-events: none;
-      display: flex;
-      align-items: center;
-      gap: 7px;
-      background: rgba(0,0,0,0.65);
-      border: 1px solid rgba(232,0,29,0.5);
-      border-radius: 30px;
-      padding: 5px 12px 5px 6px;
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
-      box-shadow: 0 0 16px rgba(232,0,29,0.3);
+      background: transparent;
+      border: none;
+      padding: 0;
     }
     #iframe-overlay .ov-logo img {
-      width: 26px; height: 26px; border-radius: 50%; object-fit: cover;
+      width: 60px; height: auto; display: block;
+      filter: drop-shadow(0 2px 8px rgba(0,0,0,0.7));
     }
-    #iframe-overlay .ov-logo span {
-      font-family: 'Barlow Condensed', sans-serif;
-      font-weight: 700; font-size: 12px;
-      letter-spacing: 0.5px; color: #fff; text-transform: uppercase;
-    }
-    #iframe-overlay .ov-logo span em { color: var(--red); font-style: normal; }
 
     /* Bottom-right: our fullscreen button — always clickable */
     #iframe-overlay .ov-fs-btn {
@@ -138,8 +124,7 @@
         border-color: rgba(232,0,29,0.6);
       }
       #iframe-overlay .ov-fs-btn svg { width: 26px; height: 26px; }
-      #iframe-overlay .ov-logo span { display: none; }
-      #iframe-overlay .ov-logo { padding: 5px; }
+      #iframe-overlay .ov-logo img { width: 48px; }
     }
 
     /* ── LOGO — absolute inside shell, so it moves with fullscreen ── */
@@ -149,48 +134,35 @@
       right: 12px;
       z-index: 9999;
       pointer-events: none;
-      display: flex;
-      align-items: center;
-      gap: 7px;
-      background: rgba(0,0,0,0.65);
-      border: 1px solid rgba(232,0,29,0.5);
-      border-radius: 30px;
-      padding: 5px 12px 5px 6px;
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
-      box-shadow: 0 0 16px rgba(232,0,29,0.3);
+      background: transparent;
+      border: none;
+      padding: 0;
     }
     #logo-badge img {
-      width: 28px; height: 28px;
-      border-radius: 50%;
-      object-fit: cover;
+      width: 64px;
+      height: auto;
+      display: block;
+      filter: drop-shadow(0 2px 8px rgba(0,0,0,0.7));
     }
-    #logo-badge span {
-      font-family: 'Barlow Condensed', sans-serif;
-      font-weight: 700;
-      font-size: 13px;
-      letter-spacing: 0.5px;
-      color: #fff;
-      text-transform: uppercase;
-    }
-    #logo-badge span em { color: var(--red); font-style: normal; }
-
     @media (max-width: 400px) {
-      #logo-badge span { display: none; }
-      #logo-badge { padding: 5px; }
+      #logo-badge img { width: 48px; }
     }
 
-    /* ── TICKER — sits at bottom of shell as a real flex child ── */
+    /* ── TICKER — absolute overlay, floats above video near bottom ── */
     #ticker {
-      flex-shrink: 0;
-      width: 100%;
+      position: absolute;
+      left: 0; right: 0;
+      bottom: 54px;           /* float above bottom — not at the very edge */
       height: var(--ticker-h);
-      background: rgba(0,0,0,0.85);
+      background: rgba(0,0,0,0.72);
       border-top: 1px solid rgba(232,0,29,0.45);
+      border-bottom: 1px solid rgba(232,0,29,0.45);
       display: flex;
       align-items: center;
       overflow: hidden;
       z-index: 9999;
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
     }
     .ticker-label {
       flex-shrink: 0;
@@ -346,7 +318,7 @@
 
   <!-- Shaka wrapper -->
   <div id="shaka-wrapper">
-    <video id="video-el" autoplay playsinline preload="metadata"
+    <video id="video-el" autoplay playsinline preload="metadata" muted
            poster="https://i.ibb.co/0mLQWV1/sportssnap-net.png"></video>
     <!-- Iframe inside shaka-wrapper so it's also inside shell -->
     <iframe id="iframe-el" allowfullscreen allow="autoplay; encrypted-media; picture-in-picture"></iframe>
@@ -354,8 +326,7 @@
     <!-- Iframe overlay: our branding + fullscreen button on top of iframe -->
     <div id="iframe-overlay">
       <div class="ov-logo">
-        <img src="https://i.ibb.co/wzpjWHt/Sports-Snap-circle.png" alt="SS" onerror="this.style.display='none'">
-        <span>Sports<em>Snap</em></span>
+        <img src="https://i.ibb.co/0mLQWV1/sportssnap-net.png" alt="Sports Snap" onerror="this.style.display='none'">
       </div>
       <button class="ov-fs-btn" id="iframe-fs-btn" title="Fullscreen">
         <svg id="iframe-fs-icon" viewBox="0 0 24 24"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg>
@@ -386,8 +357,7 @@
 
   <!-- LOGO: absolute inside shell — moves with fullscreen -->
   <div id="logo-badge">
-    <img src="https://i.ibb.co/wzpjWHt/Sports-Snap-circle.png" alt="Sports Snap" onerror="this.style.display='none'">
-    <span>Sports<em>Snap</em></span>
+    <img src="https://i.ibb.co/0mLQWV1/sportssnap-net.png" alt="Sports Snap" onerror="this.style.display='none'">
   </div>
 
   <!-- Popup: inside shell so it works in fullscreen too -->
@@ -556,6 +526,30 @@
   setTimeout(() => popup.classList.add('show'), 7000);
   popupClose.addEventListener('click', () => popup.classList.remove('show'));
   popup.addEventListener('click', (e) => { if (e.target === popup) popup.classList.remove('show'); });
+
+  /* ── Auto-unmute on first user interaction ──
+     Browsers require muted for autoplay. We unmute the moment
+     the user touches/clicks anywhere, so sound starts immediately. */
+  function tryUnmute() {
+    if (videoEl.muted) {
+      videoEl.muted = false;
+      videoEl.volume = 1;
+    }
+    document.removeEventListener('click',     tryUnmute);
+    document.removeEventListener('touchstart', tryUnmute);
+    document.removeEventListener('keydown',   tryUnmute);
+  }
+  document.addEventListener('click',     tryUnmute, { once: true });
+  document.addEventListener('touchstart', tryUnmute, { once: true, passive: true });
+  document.addEventListener('keydown',   tryUnmute, { once: true });
+
+  /* Also unmute as soon as video starts playing (works on some browsers) */
+  videoEl.addEventListener('play', () => {
+    setTimeout(() => {
+      videoEl.muted  = false;
+      videoEl.volume = 1;
+    }, 100);
+  }, { once: true });
 
   window.addEventListener('load', loadStream);
 })();
