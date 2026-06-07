@@ -1,222 +1,351 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sports Snap TV - Multi Player</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <!-- Plyr -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/plyr@3.7.8/dist/plyr.css" />
-  <script src="https://cdn.jsdelivr.net/npm/plyr@3.7.8/dist/plyr.min.js"></script>
+<title>Sports Snap TV</title>
 
-  <!-- DPlayer -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/dplayer@1.26.0/dist/DPlayer.min.css" />
-  <script src="https://cdn.jsdelivr.net/npm/dplayer@1.26.0/dist/DPlayer.min.js"></script>
+<link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css">
 
-  <!-- Video.js -->
-  <link href="https://vjs.zencdn.net/8.21.0/video-js.css" rel="stylesheet" />
-  <script src="https://vjs.zencdn.net/8.21.0/video.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 
-  <!-- Shaka Player (Best for MPD) -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.16.3/shaka-player.compiled.min.js"></script>
+<script src="https://cdn.dashjs.org/latest/dash.all.min.js"></script>
 
-  <!-- Clappr -->
-  <script src="https://cdn.jsdelivr.net/npm/@clappr/player@latest/dist/clappr.plainhtml5.min.js"></script>
+<script src="https://cdn.plyr.io/3.7.8/plyr.js"></script>
 
-  <style>
-    body { margin: 0; padding: 0; background: #000; font-family: Arial, sans-serif; }
-    #video-container {
-      max-width: 1100px;
-      margin: 20px auto;
-      position: relative;
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+    background:#000;
+    font-family:Arial,sans-serif;
+}
+
+#video-container{
+    position:relative;
+    width:100%;
+    max-width:100%;
+    margin:auto;
+    background:#000;
+}
+
+#video{
+    width:100%;
+    height:100vh;
+    background:#000;
+}
+
+#logo{
+    position:absolute;
+    top:10px;
+    right:10px;
+    width:60px;
+    z-index:100;
+}
+
+#running-banner{
+    position:absolute;
+    bottom:80px;
+    left:0;
+    width:100%;
+    overflow:hidden;
+    background:rgba(0,0,0,.7);
+    color:#fff;
+    z-index:100;
+    padding:6px 0;
+}
+
+#banner-text{
+    display:inline-block;
+    white-space:nowrap;
+    padding-left:100%;
+    animation:scroll 15s linear infinite;
+    font-size:16px;
+}
+
+@keyframes scroll{
+    from{
+        transform:translateX(0);
     }
-    #player-wrapper { width: 100%; min-height: 560px; background: #000; }
-    
-    #logo {
-      position: absolute; top: 15px; right: 15px; width: 65px; z-index: 100;
+    to{
+        transform:translateX(-100%);
     }
-    
-    #running-banner {
-      position: absolute; bottom: 70px; left: 0; width: 100%;
-      background: rgba(0,0,0,0.8); color: white; padding: 10px 0;
-      z-index: 90; text-align: center; overflow: hidden;
-    }
-    #banner-text {
-      display: inline-block; white-space: nowrap; animation: scroll 18s linear infinite;
-      font-size: 18px;
-    }
-    @keyframes scroll { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
+}
 
-    .popup { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 1000; justify-content: center; align-items: center; }
-    .popup-content {
-      background: #111; padding: 30px; border-radius: 12px; text-align: center;
-      border: 3px solid #FF0040; max-width: 340px; color: white;
-    }
-    .close-btn {
-      position: absolute; top: -15px; right: -15px; background: #FF0040; color: white;
-      border: none; width: 32px; height: 32px; border-radius: 50%; font-size: 22px; cursor: pointer;
-    }
-  </style>
+.loading{
+    position:absolute;
+    top:50%;
+    left:50%;
+    transform:translate(-50%,-50%);
+    color:#fff;
+    font-size:20px;
+    z-index:999;
+}
+
+.popup{
+    display:none;
+    position:fixed;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+    z-index:9999;
+    justify-content:center;
+    align-items:center;
+}
+
+.popup-content{
+    width:90%;
+    max-width:320px;
+    background:#000;
+    color:#fff;
+    border:2px solid red;
+    border-radius:10px;
+    padding:15px;
+    text-align:center;
+    position:relative;
+}
+
+.close-btn{
+    position:absolute;
+    top:-8px;
+    right:-8px;
+    width:25px;
+    height:25px;
+    border:none;
+    border-radius:50%;
+    background:red;
+    color:#fff;
+    cursor:pointer;
+    font-size:18px;
+}
+
+.join-btn{
+    display:inline-block;
+    margin-top:10px;
+    padding:8px 15px;
+    border:2px solid red;
+    border-radius:10px;
+    text-decoration:none;
+    color:red;
+    font-weight:bold;
+}
+
+.error{
+    color:red;
+    text-align:center;
+    padding:20px;
+    font-size:18px;
+}
+</style>
+
 </head>
+
 <body>
-  <div id="video-container">
-    <div id="player-wrapper"></div>
-    <img id="logo" src="https://i.ibb.co/wzpjWHt/Sports-Snap-circle.png" alt="Logo">
-    <div id="running-banner">
-      <div id="banner-text">Join Our Telegram @sportssnapofficial for more updates!! | www.sportssnap.net</div>
-    </div>
-  </div>
 
-  <!-- Popup -->
-  <div class="popup" id="popup">
-    <div class="popup-content">
-      <button class="close-btn">×</button>
-      <h2>Join Us!</h2>
-      <p>Join Sports Snap Telegram for latest streams & updates!</p>
-      <a href="https://t.me/sportssnapofficial" target="_blank" style="display:inline-block;padding:12px 24px;background:#000;color:#FF0040;border:2px solid #FF0040;border-radius:10px;text-decoration:none;font-weight:bold;margin-top:10px;">JOIN TELEGRAM</a>
-    </div>
-  </div>
+<div id="video-container">
 
-  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest/dist/hls.min.js"></script>
+<div id="loading" class="loading">
+Loading Stream...
+</div>
 
-  <script>
-    function getQueryParameter(name) {
-      return new URLSearchParams(window.location.search).get(name);
-    }
+<video
+id="video"
+playsinline
+controls
+poster="https://i.ibb.co/0mLQWV1/sportssnap-net.png"> </video>
 
+<img
+id="logo"
+src="https://i.ibb.co/wzpjWHt/Sports-Snap-circle.png"
+alt="Sports Snap">
+
+<div id="running-banner">
+<div id="banner-text">
+Join Our Telegram Channel @sportssnapofficial For More Updates!! | www.sportssnap.net
+</div>
+</div>
+
+</div>
+
+<div class="popup">
+
+<div class="popup-content">
+
+<button class="close-btn">×</button>
+
+<h2>Join Us!</h2>
+
+<p>
+Join Sports Snap Telegram Channel For More Updates!
+</p>
+
+<a
+class="join-btn"
+href="https://t.me/sportssnapofficial"
+target="_blank">
+Join Now </a>
+
+</div>
+
+</div>
+
+<script>
+
+const video = document.getElementById('video');
+const loading = document.getElementById('loading');
+
+function getQueryParameter(name){
     const params = new URLSearchParams(window.location.search);
-    let channelParam = null;
-    let channel = null;
-    let playerType = 'plyr1';
+    return params.get(name);
+}
 
-    for (let [key] of params) {
-      if (key.includes('sportssnap')) {
-        channelParam = key;
-        channel = params.get(key);
-        playerType = key.split('_')[0];
-        break;
-      }
+const channel = getQueryParameter('sportssnap');
+
+if(!channel){
+    loading.innerHTML = 'No Channel Selected';
+}else{
+
+fetch('https://sportssnap.github.io/playlist/stream.json?' + Date.now())
+
+.then(response => response.json())
+
+.then(data => {
+
+    const streamUrl = data[channel];
+
+    if(!streamUrl){
+
+        loading.innerHTML = 'Channel Not Found';
+        return;
     }
 
-    let streamUrl = null;
+    loading.style.display = 'none';
 
-    fetch('https://sportssnap.github.io/playlist/stream.json')
-      .then(res => res.json())
-      .then(data => {
-        streamUrl = data[channel];
-        if (!streamUrl) throw new Error("Channel not found");
-        initPlayer();
-      })
-      .catch(err => {
-        console.error(err);
-        document.getElementById('player-wrapper').innerHTML = 
-          `<h2 style="color:red;text-align:center;padding:100px 20px;">Stream not available or channel not found</h2>`;
-      });
+    const lowerUrl = streamUrl.toLowerCase();
 
-    function initPlayer() {
-      const container = document.getElementById('player-wrapper');
-      container.innerHTML = '';
-      const isMpd = streamUrl.toLowerCase().includes('.mpd');
+    if(lowerUrl.includes('.m3u8')){
 
-      switch(playerType) {
-        case 'plyr1':
-        case 'plyr2': initPlyr(container); break;
-        case 'dplayer': initDPlayer(container); break;
-        case 'videojs': initVideoJS(container, isMpd); break;
-        case 'shaka': initShaka(container); break;
-        case 'hls': initHlsNative(container); break;
-        case 'jw': initJWPlayer(container); break;
-        case 'clappr': initClappr(container); break;
-        default: initPlyr(container);
-      }
+        if(Hls.isSupported()){
+
+            const hls = new Hls({
+                enableWorker:true,
+                lowLatencyMode:true
+            });
+
+            hls.loadSource(streamUrl);
+            hls.attachMedia(video);
+
+            hls.on(Hls.Events.MANIFEST_PARSED,function(){
+
+                new Plyr(video,{
+                    fullscreen:{
+                        enabled:true,
+                        fallback:true,
+                        iosNative:true
+                    }
+                });
+
+            });
+
+        }else if(video.canPlayType('application/vnd.apple.mpegurl')){
+
+            video.src = streamUrl;
+
+            new Plyr(video);
+
+        }
+
     }
 
-    // 1. PLYR (Most Reliable)
-    function initPlyr(container) {
-      container.innerHTML = `<video id="plyr-video" controls playsinline style="width:100%;height:100%;"></video>`;
-      const video = document.getElementById('plyr-video');
-      setupHls(video);
-      new Plyr(video, {
-        controls: ['play', 'progress', 'current-time', 'duration', 'mute', 'volume', 'fullscreen', 'pip', 'settings'],
-        settings: ['quality', 'speed']
-      });
+    else if(lowerUrl.includes('.mpd')){
+
+        dashjs.MediaPlayer()
+        .create()
+        .initialize(video,streamUrl,true);
+
+        new Plyr(video,{
+            fullscreen:{
+                enabled:true,
+                fallback:true,
+                iosNative:true
+            }
+        });
+
     }
 
-    // 2. DPLAYER
-    function initDPlayer(container) {
-      container.innerHTML = `<div id="dplayer" style="width:100%;height:560px;"></div>`;
-      new DPlayer({
-        container: document.getElementById('dplayer'),
-        autoplay: true,
-        video: { url: streamUrl, type: streamUrl.includes('.mpd') ? 'dash' : 'hls' }
-      });
-    }
+    else{
 
-    // 3. VIDEO.JS
-    function initVideoJS(container, isMpd) {
-      container.innerHTML = `<video id="videojs-player" class="video-js vjs-default-skin" controls playsinline style="width:100%;height:560px;"></video>`;
-      const player = videojs('videojs-player', {
-        fluid: true,
-        autoplay: true,
-        sources: [{ src: streamUrl, type: isMpd ? 'application/dash+xml' : 'application/x-mpegURL' }]
-      });
-    }
-
-    // 4. SHAKA PLAYER (Excellent for MPD)
-    function initShaka(container) {
-      container.innerHTML = `<video id="shaka-video" controls autoplay style="width:100%;height:560px;"></video>`;
-      const video = document.getElementById('shaka-video');
-      shaka.polyfill.installAll();
-      const player = new shaka.Player(video);
-      player.load(streamUrl).catch(err => console.error('Shaka Error:', err));
-    }
-
-    // 5. HLS Native
-    function initHlsNative(container) {
-      container.innerHTML = `<video id="hls-video" controls style="width:100%;height:560px;"></video>`;
-      setupHls(document.getElementById('hls-video'));
-    }
-
-    function setupHls(video) {
-      if (Hls.isSupported()) {
-        const hls = new Hls({ enableWorker: true });
-        hls.loadSource(streamUrl);
-        hls.attachMedia(video);
-      } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
         video.src = streamUrl;
-      }
+
+        new Plyr(video);
     }
 
-    // 6. JW Player (may need your own key for full features)
-    function initJWPlayer(container) {
-      container.innerHTML = `<div id="jwplayer" style="width:100%;height:560px;"></div>`;
-      if (typeof jwplayer === 'function') {
-        jwplayer('jwplayer').setup({ file: streamUrl, autostart: true });
-      } else {
-        container.innerHTML += `<p style="color:orange;text-align:center;">JW Player library not loaded. Try another player.</p>`;
-      }
+})
+
+.catch(error => {
+
+    console.error(error);
+
+    loading.innerHTML =
+    '<div class="error">Failed To Load Stream</div>';
+
+});
+
+}
+
+video.addEventListener('dblclick',function(){
+
+    const container =
+    document.getElementById('video-container');
+
+    if(document.fullscreenElement){
+
+        document.exitFullscreen();
+
+    }else{
+
+        container.requestFullscreen();
+
     }
 
-    // 7. CLAPPR
-    function initClappr(container) {
-      container.innerHTML = `<div id="clappr-player" style="width:100%;height:560px;"></div>`;
-      new Clappr.Player({
-        source: streamUrl,
-        parentId: '#clappr-player',
-        height: '560px',
-        width: '100%',
-        autoplay: true
-      });
+});
+
+document.addEventListener('DOMContentLoaded',function(){
+
+    let popupClosed = false;
+
+    function showPopup(){
+
+        if(!popupClosed){
+
+            document.querySelector('.popup').style.display='flex';
+
+        }
+
     }
 
-    // Popup
-    setTimeout(() => {
-      document.getElementById('popup').style.display = 'flex';
-    }, 6500);
+    setTimeout(showPopup,6000);
 
-    document.querySelector('.close-btn').addEventListener('click', () => {
-      document.getElementById('popup').style.display = 'none';
+    document
+    .querySelector('.close-btn')
+    .addEventListener('click',function(){
+
+        document.querySelector('.popup').style.display='none';
+
+        popupClosed = true;
+
     });
-  </script>
+
+});
+
+</script>
+
 </body>
 </html>
