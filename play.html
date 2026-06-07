@@ -27,17 +27,11 @@
   <script src="https://cdn.jsdelivr.net/npm/jwplayer@8/dist/jwplayer.core.min.js"></script>
 
   <style>
-    body { 
-      margin: 0; padding: 0; 
-      background: #000; 
-      font-family: 'Segoe UI', Arial, sans-serif; 
-      color: white;
-    }
+    body { margin: 0; padding: 0; background: #000; font-family: Arial, sans-serif; }
     #video-container {
-      max-width: 1200px;
+      max-width: 1180px;
       margin: 20px auto;
       position: relative;
-      padding: 0 10px;
     }
     #player-wrapper { 
       width: 100%; 
@@ -45,125 +39,46 @@
       background: #000; 
       border-radius: 8px;
       overflow: hidden;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.8);
     }
     #logo {
-      position: absolute; 
-      top: 15px; 
-      right: 15px; 
-      width: 70px; 
-      z-index: 100;
+      position: absolute; top: 15px; right: 15px; width: 70px; z-index: 100;
       border-radius: 50%;
-      box-shadow: 0 0 15px rgba(255,0,64,0.6);
+      box-shadow: 0 0 15px rgba(255,0,64,0.5);
     }
     #running-banner {
-      position: absolute; 
-      bottom: 80px; 
-      left: 0; 
-      width: 100%;
-      background: rgba(0,0,0,0.85); 
-      color: #fff; 
-      padding: 12px 0;
-      z-index: 90; 
-      text-align: center; 
-      overflow: hidden;
-      font-size: 17px;
-      font-weight: 500;
+      position: absolute; bottom: 75px; left: 0; width: 100%;
+      background: rgba(0,0,0,0.85); color: white; padding: 12px 0;
+      z-index: 90; text-align: center; overflow: hidden;
     }
     #banner-text {
-      display: inline-block; 
-      white-space: nowrap; 
-      animation: scroll 20s linear infinite;
+      display: inline-block; white-space: nowrap; animation: scroll 20s linear infinite;
+      font-size: 17px;
     }
-    @keyframes scroll { 
-      0% { transform: translateX(100%); } 
-      100% { transform: translateX(-100%); } 
-    }
-    .controls-bar {
-      position: absolute;
-      top: 15px;
-      left: 15px;
-      z-index: 100;
-      background: rgba(0,0,0,0.7);
-      padding: 8px 12px;
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-size: 14px;
-    }
-    select {
-      background: #222;
-      color: white;
-      border: 1px solid #FF0040;
-      border-radius: 6px;
-      padding: 6px 10px;
-    }
-    .popup { 
-      display: none; 
-      position: fixed; 
-      inset: 0; 
-      background: rgba(0,0,0,0.95); 
-      z-index: 1000; 
-      justify-content: center; 
-      align-items: center; 
-    }
+    @keyframes scroll { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
+    
+    .popup { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 1000; justify-content: center; align-items: center; }
     .popup-content {
-      background: #111; 
-      padding: 35px; 
-      border-radius: 16px; 
-      text-align: center;
-      border: 3px solid #FF0040; 
-      max-width: 360px; 
-      color: white;
-      position: relative;
+      background: #111; padding: 30px; border-radius: 12px; text-align: center;
+      border: 3px solid #FF0040; max-width: 360px; color: white; position: relative;
     }
     .close-btn {
-      position: absolute; 
-      top: -18px; 
-      right: -18px; 
-      background: #FF0040; 
-      color: white;
-      border: none; 
-      width: 38px; 
-      height: 38px; 
-      border-radius: 50%; 
-      font-size: 26px; 
-      cursor: pointer;
-      box-shadow: 0 0 10px rgba(0,0,0,0.5);
+      position: absolute; top: -15px; right: -15px; background: #FF0040; color: white;
+      border: none; width: 36px; height: 36px; border-radius: 50%; font-size: 24px; cursor: pointer;
     }
-    .loading {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
+    .error-msg {
       color: #FF0040;
-      font-size: 18px;
-      z-index: 50;
+      text-align: center;
+      padding: 120px 20px;
+      font-size: 19px;
     }
   </style>
 </head>
 <body>
   <div id="video-container">
-    <div class="controls-bar">
-      <label>Player: </label>
-      <select id="player-select">
-        <option value="plyr">Plyr (Recommended)</option>
-        <option value="shaka">Shaka Player (Best for MPD)</option>
-        <option value="videojs">Video.js</option>
-        <option value="dplayer">DPlayer</option>
-        <option value="hls">HLS Native</option>
-        <option value="clappr">Clappr</option>
-        <option value="jw">JW Player</option>
-      </select>
-    </div>
-
     <div id="player-wrapper"></div>
-    
-    <img id="logo" src="https://i.ibb.co/wzpjWHt/Sports-Snap-circle.png" alt="Sports Snap Logo">
-    
+    <img id="logo" src="https://i.ibb.co/wzpjWHt/Sports-Snap-circle.png" alt="Logo">
     <div id="running-banner">
-      <div id="banner-text">Join Our Telegram @sportssnapofficial for more updates &amp; streams! | www.sportssnap.net</div>
+      <div id="banner-text">Join Our Telegram @sportssnapofficial for more updates & streams!! | www.sportssnap.net</div>
     </div>
   </div>
 
@@ -171,103 +86,92 @@
   <div class="popup" id="popup">
     <div class="popup-content">
       <button class="close-btn">×</button>
-      <h2>🚀 Join Sports Snap!</h2>
-      <p>Get instant notifications for live matches and working streams.</p>
+      <h2>Join Us!</h2>
+      <p>Join Sports Snap Telegram for latest streams & updates!</p>
       <a href="https://t.me/sportssnapofficial" target="_blank" 
-         style="display:inline-block;padding:14px 28px;background:#000;color:#FF0040;border:2px solid #FF0040;border-radius:10px;text-decoration:none;font-weight:bold;margin-top:15px;">
-        JOIN TELEGRAM CHANNEL
+         style="display:inline-block;padding:12px 26px;background:#000;color:#FF0040;border:2px solid #FF0040;border-radius:10px;text-decoration:none;font-weight:bold;">
+        JOIN TELEGRAM
       </a>
     </div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/hls.js@latest/dist/hls.min.js"></script>
   <script>
-    // Get channel from URL parameter
-    function getStreamUrl() {
-      const params = new URLSearchParams(window.location.search);
-      let channel = null;
-      
-      for (let [key, value] of params) {
-        if (key.toLowerCase().includes('sportssnap') && value) {
-          channel = value;
-          break;
-        }
-      }
-      return channel;
-    }
-
-    let currentPlayer = null;
-    let streamUrl = null;
-
     const container = document.getElementById('player-wrapper');
-    const playerSelect = document.getElementById('player-select');
+    let streamUrl = null;
+    let playerType = 'plyr1';
 
-    // Fetch stream
-    fetch('https://sportssnap.github.io/playlist/stream.json')
-      .then(res => res.json())
-      .then(data => {
-        const channelParam = getStreamUrl();
-        if (!channelParam) throw new Error("No channel specified in URL");
-        
-        streamUrl = data[channelParam];
-        if (!streamUrl) throw new Error("Stream not found for this channel");
-        
-        initDefaultPlayer();
-      })
-      .catch(err => {
-        console.error(err);
-        container.innerHTML = `
-          <div style="color:#FF0040;text-align:center;padding:120px 20px;font-size:20px;">
-            ❌ Stream not available or invalid channel<br><br>
-            <small style="color:#aaa;">Make sure URL has ?sportssnap_channel=xxx</small>
-          </div>`;
-      });
-
-    function clearContainer() {
-      if (currentPlayer) {
-        try {
-          if (currentPlayer.destroy) currentPlayer.destroy();
-          if (currentPlayer.dispose) currentPlayer.dispose();
-        } catch(e) {}
-      }
-      container.innerHTML = '';
-    }
-
-    function showLoading() {
-      container.innerHTML = `<div class="loading">Loading stream...</div>`;
-    }
-
-    function initDefaultPlayer() {
-      playerSelect.value = 'plyr';
-      initPlyr();
-    }
-
-    // Player Switcher
-    playerSelect.addEventListener('change', () => {
-      if (!streamUrl) return;
-      const type = playerSelect.value;
-      
-      clearContainer();
-      showLoading();
-
-      setTimeout(() => {
-        switch(type) {
-          case 'plyr': initPlyr(); break;
-          case 'shaka': initShaka(); break;
-          case 'videojs': initVideoJS(); break;
-          case 'dplayer': initDPlayer(); break;
-          case 'hls': initHlsNative(); break;
-          case 'clappr': initClappr(); break;
-          case 'jw': initJWPlayer(); break;
+    // Improved URL parameter handling
+    function getQueryParams() {
+      const params = new URLSearchParams(window.location.search);
+      for (let [key, value] of params.entries()) {
+        if (key.toLowerCase().includes('sportssnap') && value) {
+          // Handle formats like: shaka_sportssnap, plyr1_sportssnap, etc.
+          const parts = key.split('_');
+          playerType = parts[0].toLowerCase();   // e.g., "shaka"
+          return value;                           // channel name like "barcelona"
         }
-      }, 100);
-    });
+      }
+      return null;
+    }
 
-    // 1. PLYR - Most Recommended
+    const channelKey = getQueryParams();
+
+    if (!channelKey) {
+      container.innerHTML = `<div class="error-msg">❌ No valid parameter found.<br>Example: ?shaka_sportssnap=barcelona</div>`;
+    } else {
+      fetch('https://sportssnap.github.io/playlist/stream.json')
+        .then(res => res.json())
+        .then(data => {
+          streamUrl = data[channelKey];
+          if (!streamUrl) throw new Error("Channel not found in playlist");
+          initPlayer();
+        })
+        .catch(err => {
+          console.error(err);
+          container.innerHTML = `<div class="error-msg">❌ Stream not available or channel not found</div>`;
+        });
+    }
+
+    function initPlayer() {
+      container.innerHTML = '';
+      const isMpd = streamUrl.toLowerCase().includes('.mpd');
+
+      switch(playerType) {
+        case 'plyr1':
+        case 'plyr2':
+        case 'plyr':
+          initPlyr();
+          break;
+        case 'shaka':
+          initShaka();
+          break;
+        case 'dplayer':
+          initDPlayer(isMpd);
+          break;
+        case 'videojs':
+          initVideoJS(isMpd);
+          break;
+        case 'hls':
+          initHlsNative();
+          break;
+        case 'jw':
+          initJWPlayer();
+          break;
+        case 'clappr':
+          initClappr();
+          break;
+        default:
+          initPlyr();
+      }
+    }
+
+    // ==================== PLAYER FUNCTIONS ====================
+
     function initPlyr() {
-      container.innerHTML = `<video id="plyr-video" controls playsinline></video>`;
+      container.innerHTML = `<video id="plyr-video" controls playsinline style="width:100%; height:100%;"></video>`;
       const video = document.getElementById('plyr-video');
-      
+
       if (Hls.isSupported()) {
         const hls = new Hls({ enableWorker: true, maxBufferLength: 30 });
         hls.loadSource(streamUrl);
@@ -276,60 +180,42 @@
         video.src = streamUrl;
       }
 
-      currentPlayer = new Plyr(video, {
-        controls: ['play-large', 'play', 'progress', 'current-time', 'duration', 'mute', 'volume', 'settings', 'fullscreen', 'pip', 'airplay'],
-        settings: ['quality', 'speed', 'loop'],
-        autoplay: true,
-        quality: { default: 'auto', forced: true, options: ['auto'] }
+      new Plyr(video, {
+        controls: ['play-large', 'play', 'progress', 'current-time', 'duration', 'mute', 'volume', 'settings', 'fullscreen', 'pip'],
+        settings: ['quality', 'speed'],
+        autoplay: true
       });
     }
 
-    // 2. Shaka Player (Best for MPD/DASH)
     function initShaka() {
-      container.innerHTML = `<video id="shaka-video" controls autoplay style="width:100%;height:100%;"></video>`;
+      container.innerHTML = `<video id="shaka-video" controls autoplay style="width:100%;height:560px;"></video>`;
       const video = document.getElementById('shaka-video');
-      
       shaka.polyfill.installAll();
       const player = new shaka.Player(video);
-      currentPlayer = player;
-      
-      player.load(streamUrl).catch(err => {
-        console.error(err);
-        container.innerHTML += `<p style="color:orange;text-align:center;padding:20px;">Shaka failed to load stream.</p>`;
-      });
+      player.load(streamUrl).catch(console.error);
     }
 
-    // 3. Video.js
-    function initVideoJS() {
-      container.innerHTML = `<video id="videojs-player" class="video-js vjs-default-skin vjs-big-play-centered" controls playsinline></video>`;
-      currentPlayer = videojs('videojs-player', {
-        fluid: true,
-        autoplay: true,
-        sources: [{
-          src: streamUrl,
-          type: streamUrl.toLowerCase().includes('.mpd') ? 'application/dash+xml' : 'application/x-mpegURL'
-        }]
-      });
-    }
-
-    // 4. DPlayer
-    function initDPlayer() {
+    function initDPlayer(isMpd) {
       container.innerHTML = `<div id="dplayer" style="width:100%;height:560px;"></div>`;
-      currentPlayer = new DPlayer({
+      new DPlayer({
         container: document.getElementById('dplayer'),
         autoplay: true,
-        video: { 
-          url: streamUrl, 
-          type: streamUrl.toLowerCase().includes('.mpd') ? 'dash' : 'hls' 
-        }
+        video: { url: streamUrl, type: isMpd ? 'dash' : 'hls' }
       });
     }
 
-    // 5. HLS Native
+    function initVideoJS(isMpd) {
+      container.innerHTML = `<video id="videojs-player" class="video-js vjs-default-skin" controls playsinline style="width:100%;height:560px;"></video>`;
+      videojs('videojs-player', {
+        fluid: true,
+        autoplay: true,
+        sources: [{ src: streamUrl, type: isMpd ? 'application/dash+xml' : 'application/x-mpegURL' }]
+      });
+    }
+
     function initHlsNative() {
-      container.innerHTML = `<video id="hls-video" controls autoplay style="width:100%;height:100%;"></video>`;
+      container.innerHTML = `<video id="hls-video" controls autoplay style="width:100%;height:560px;"></video>`;
       const video = document.getElementById('hls-video');
-      
       if (Hls.isSupported()) {
         const hls = new Hls();
         hls.loadSource(streamUrl);
@@ -339,25 +225,16 @@
       }
     }
 
-    // 6. JW Player
     function initJWPlayer() {
       container.innerHTML = `<div id="jwplayer" style="width:100%;height:560px;"></div>`;
       try {
-        currentPlayer = jwplayer('jwplayer').setup({
-          file: streamUrl,
-          autostart: true,
-          width: "100%",
-          height: "100%"
-        });
-      } catch(e) {
-        container.innerHTML += `<p style="color:orange;text-align:center;padding:20px;">JW Player failed to initialize.</p>`;
-      }
+        jwplayer('jwplayer').setup({ file: streamUrl, autostart: true });
+      } catch(e) {}
     }
 
-    // 7. Clappr
     function initClappr() {
       container.innerHTML = `<div id="clappr-player" style="width:100%;height:560px;"></div>`;
-      currentPlayer = new Clappr.Player({
+      new Clappr.Player({
         source: streamUrl,
         parentId: '#clappr-player',
         height: '560px',
@@ -366,10 +243,10 @@
       });
     }
 
-    // Popup
+    // Popup after 7 seconds
     setTimeout(() => {
       document.getElementById('popup').style.display = 'flex';
-    }, 8000);
+    }, 7000);
 
     document.querySelector('.close-btn').addEventListener('click', () => {
       document.getElementById('popup').style.display = 'none';
