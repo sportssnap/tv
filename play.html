@@ -19,20 +19,23 @@ html, body {
     font-family: Arial;
 }
 
+/* IMPORTANT FIX: UI container must be full screen */
 #video-container {
     position: relative;
     width: 100%;
     height: 100vh;
     background: black;
+    overflow: hidden;
 }
 
+/* video must fill properly */
 video {
     width: 100%;
     height: 100%;
     object-fit: contain;
 }
 
-/* Logo */
+/* logo */
 #logo {
     position: absolute;
     top: 10px;
@@ -42,7 +45,7 @@ video {
     pointer-events: none;
 }
 
-/* Banner */
+/* banner */
 #running-banner {
     position: absolute;
     bottom: 55px;
@@ -66,7 +69,7 @@ video {
     to { transform: translateX(-100%); }
 }
 
-/* Loading */
+/* loading */
 #loading {
     position: absolute;
     top: 50%;
@@ -77,19 +80,11 @@ video {
     z-index: 100;
 }
 
-/* MOBILE IMPROVEMENTS */
+/* mobile tuning */
 @media (max-width: 768px) {
-    #logo {
-        width: 32px;
-    }
-
-    #banner-text {
-        font-size: 11px;
-    }
-
-    .shaka-controls-button {
-        transform: scale(1.2);
-    }
+    #logo { width: 32px; }
+    #banner-text { font-size: 11px; }
+    .shaka-controls-button { transform: scale(1.2); }
 }
 </style>
 </head>
@@ -100,7 +95,8 @@ video {
 
 <div id="loading">Loading stream...</div>
 
-<video id="video" autoplay playsinline></video>
+<!-- IMPORTANT FIX: shaka-video class -->
+<video id="video" class="shaka-video" autoplay playsinline></video>
 
 <img id="logo" src="https://i.ibb.co/wzpjWHt/Sports-Snap-circle.png">
 
@@ -114,7 +110,7 @@ Join @sportssnapofficial | www.sportssnap.net
 
 <script>
 
-// ---------------- PARAM ----------------
+// ---------------- GET PARAM ----------------
 function getParam(name){
     return new URLSearchParams(window.location.search).get(name);
 }
@@ -134,24 +130,20 @@ async function init(){
 
     const player = new shaka.Player(video);
 
-    // 🔥 Mobile optimized streaming config
+    // better buffering for mobile
     player.configure({
         streaming: {
             bufferingGoal: 25,
             rebufferingGoal: 2,
-            bufferBehind: 30,
-            autoLowLatencyMode: true
+            bufferBehind: 30
         }
     });
 
-    // UI OVERLAY
-    const ui = new shaka.ui.Overlay(
-        player,
-        document.getElementById('video-container'),
-        video
-    );
+    // UI FIX (IMPORTANT FOR MOBILE)
+    const uiContainer = document.getElementById('video-container');
 
-    // 🔥 MOBILE FRIENDLY CONTROLS
+    const ui = new shaka.ui.Overlay(player, uiContainer, video);
+
     ui.configure({
         controlPanelElements: [
             'play_pause',
@@ -166,15 +158,16 @@ async function init(){
             'playback_rate',
             'picture_in_picture'
         ],
-        seekBarColors: {
-            base: 'rgba(255,255,255,0.3)',
-            buffered: 'rgba(255,255,255,0.5)',
-            played: '#ff0000'
-        },
-        doubleClickForFullscreen: true
+        addSeekBar: true,
+        fadeDelay: 3
     });
 
-    // 🔥 Better mobile behavior
+    // 🔥 FIX: force controls visible on mobile tap
+    video.addEventListener('touchstart', () => {
+        ui.getControls().show();
+    });
+
+    // mobile inline fix
     video.setAttribute('playsinline', '');
     video.setAttribute('webkit-playsinline', '');
 
