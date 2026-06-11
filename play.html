@@ -490,7 +490,16 @@
         url          = stream.url || stream.iframe || '';
         meta.title   = stream.title || '';
         meta.image   = stream.image || '';
-        drmConfig    = stream.drm || null;
+        // Convert JSON clearKeys format → JW clearkey format
+        if (stream.drm && stream.drm.clearKeys) {
+          const entries = Object.entries(stream.drm.clearKeys);
+          if (entries.length > 0) {
+            const [keyId, key] = entries[0];
+            drmConfig = { clearkey: { keyId, key } };
+          }
+        } else if (stream.drm) {
+          drmConfig = stream.drm;
+        }
         sandboxFlag  = stream.sandbox || false;
         type = (stream.iframe || stream.type === 'iframe') ? 'iframe' : detectType(url);
       }
