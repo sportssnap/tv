@@ -297,6 +297,14 @@
       --bg-black: #181919;
     }
 
+    /* Force JW Player logo to be larger */
+    .jw-logo img,
+    .jw-logo .jw-logo-image {
+      width: 150px !important;
+      height: auto !important;
+      max-width: none !important;
+    }
+
     /* Fullscreen */
     #player-shell:fullscreen,
     #player-shell:-webkit-full-screen,
@@ -447,8 +455,7 @@
       logo: {
         file: 'https://i.ibb.co/0mLQWV1/sportssnap-net.png',
         link: 'https://www.sportssnap.net',
-        position: 'top-right',
-        width: '120px'
+        position: 'top-right'
       },
       skin: { name: 'netflix' },
       sharing: { link: 'https://t.me/sportssnapofficial' },
