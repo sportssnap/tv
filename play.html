@@ -20,7 +20,7 @@
     :root {
       --red: #e8001d;
       --gray: rgba(255,255,255,0.55);
-      --ticker-h: 34px;
+      --bar-h: 28px;
     }
 
     *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
@@ -49,15 +49,12 @@
       background: #000;
     }
 
-    /* JW Player fills the wrapper */
     #player {
       width: 100% !important;
       height: 100% !important;
     }
 
-    .jw-wrapper.jw-reset {
-      position: fixed;
-    }
+    .jw-wrapper.jw-reset { position: fixed; }
 
     /* ── Iframe fallback ── */
     #iframe-el {
@@ -70,7 +67,7 @@
       z-index: 5;
     }
 
-    /* ── IFRAME OVERLAY ── */
+    /* ── IFRAME OVERLAY — only shown for iframe streams ── */
     #iframe-overlay {
       display: none;
       position: absolute;
@@ -87,24 +84,22 @@
       }
     }
 
+    /* Logo shown only in iframe overlay (top-left) */
     #iframe-overlay .ov-logo {
       position: absolute;
       top: 15px;
       left: 20px;
       pointer-events: none;
-      background: transparent;
-      border: none;
-      padding: 0;
     }
     #iframe-overlay .ov-logo img {
       width: 80px; height: auto; display: block;
       filter: drop-shadow(0 2px 8px rgba(0,0,0,0.7));
     }
 
+    /* Fullscreen button on iframe overlay */
     #iframe-overlay .ov-fs-btn {
       position: absolute;
-      bottom: 10px;
-      right: 10px;
+      bottom: 10px; right: 10px;
       pointer-events: all;
       width: 44px; height: 44px;
       background: rgba(0,0,0,0.7);
@@ -131,9 +126,6 @@
         pointer-events: none;
         z-index: 30;
       }
-    }
-
-    @media (hover: none) and (pointer: coarse) {
       #iframe-overlay .ov-fs-btn {
         width: 52px; height: 52px;
         bottom: 14px; right: 14px;
@@ -144,69 +136,33 @@
       #iframe-overlay .ov-logo img { width: 48px; }
     }
 
-    /* ── LOGO badge ── */
-    #logo-badge {
-      position: absolute;
-      top: 12px;
-      right: 12px;
-      z-index: 9999;
-      pointer-events: none;
-    }
-    #logo-badge img {
-      width: 64px; height: auto; display: block;
-      filter: drop-shadow(0 2px 8px rgba(0,0,0,0.7));
-    }
-    @media (max-width: 400px) {
-      #logo-badge img { width: 48px; }
-    }
-
-    /* ── TICKER ── */
-    #ticker {
+    /* ── SITE LABEL BAR (replaces scrolling ticker) ── */
+    #site-bar {
       position: absolute;
       left: 0; right: 0;
       bottom: 54px;
-      height: var(--ticker-h);
-      background: rgba(0,0,0,0.72);
-      border-top: 1px solid rgba(232,0,29,0.45);
-      border-bottom: 1px solid rgba(232,0,29,0.45);
+      height: var(--bar-h);
+      background: rgba(0,0,0,0.65);
+      border-top: 1px solid rgba(232,0,29,0.4);
       display: flex;
       align-items: center;
-      overflow: hidden;
+      justify-content: center;
       z-index: 9999;
       backdrop-filter: blur(4px);
       -webkit-backdrop-filter: blur(4px);
+      pointer-events: none;
     }
-    .ticker-label {
-      flex-shrink: 0;
-      height: 100%;
-      background: var(--red);
-      display: flex;
-      align-items: center;
-      padding: 0 13px;
+    #site-bar span {
       font-family: 'Barlow Condensed', sans-serif;
-      font-size: 11px;
-      font-weight: 800;
-      letter-spacing: 1.8px;
-      color: #fff;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 2.5px;
       text-transform: uppercase;
-      white-space: nowrap;
+      color: rgba(255,255,255,0.7);
     }
-    .ticker-track { flex: 1; overflow: hidden; }
-    .ticker-inner {
-      display: inline-flex;
-      white-space: nowrap;
-      animation: ticker-roll 22s linear infinite;
-    }
-    .ticker-inner span {
-      font-family: 'Barlow', sans-serif;
-      font-size: 13px;
-      color: rgba(255,255,255,0.88);
-      padding-right: 60px;
-    }
-    .ticker-inner span::after { content: ' ●  '; color: var(--red); }
-    @keyframes ticker-roll {
-      from { transform: translateX(0); }
-      to   { transform: translateX(-50%); }
+    #site-bar span em {
+      font-style: normal;
+      color: var(--red);
     }
 
     /* ── Loader ── */
@@ -255,7 +211,7 @@
       text-transform: uppercase; color: var(--gray);
     }
 
-    /* ── Popup ── */
+    /* ── Popup — desktop only ── */
     #popup {
       display: none;
       position: absolute;
@@ -266,7 +222,10 @@
       justify-content: center;
       backdrop-filter: blur(4px);
     }
-    #popup.show { display: flex; }
+    /* Only show popup on non-touch (desktop) devices */
+    @media (hover: hover) and (pointer: fine) {
+      #popup.show { display: flex; }
+    }
     .popup-box {
       background: #111;
       border: 1px solid var(--red);
@@ -309,7 +268,34 @@
     }
     .popup-btn:hover { background:#c0001a; }
 
-    /* JW Netflix skin CSS vars */
+    /* ── Telegram FAB — mobile only ── */
+    #tg-fab {
+      display: none;
+      position: absolute;
+      bottom: 70px;
+      right: 16px;
+      z-index: 9999;
+      width: 52px; height: 52px;
+      border-radius: 50%;
+      background: #0088cc;
+      align-items: center;
+      justify-content: center;
+      text-decoration: none;
+      box-shadow: 0 2px 12px rgba(0,136,204,0.5);
+      animation: tg-pulse 1.5s ease-out infinite;
+    }
+    #tg-fab svg { fill: #fff; width: 26px; height: 26px; }
+    @keyframes tg-pulse {
+      0%   { box-shadow: 0 0 0 0 rgba(0,136,204,0.55); }
+      80%  { box-shadow: 0 0 0 14px rgba(0,136,204,0); }
+      100% { box-shadow: 0 0 0 0 rgba(0,136,204,0); }
+    }
+    /* Show FAB only on touch/mobile */
+    @media (hover: none) and (pointer: coarse) {
+      #tg-fab { display: flex; }
+    }
+
+    /* JW skin vars */
     :root {
       --bg-red: #e50914;
       --bg-white: #f7f7f7;
@@ -332,10 +318,9 @@
   <!-- JW Player wrapper -->
   <div id="jw-wrapper">
     <div id="player">Loading the player…</div>
-    <!-- Iframe fallback inside wrapper -->
     <iframe id="iframe-el" allowfullscreen allow="autoplay; encrypted-media; picture-in-picture"></iframe>
 
-    <!-- Iframe overlay -->
+    <!-- Iframe overlay — logo + fullscreen btn, only shown for iframe streams -->
     <div id="iframe-overlay">
       <div class="ov-logo">
         <img src="https://i.ibb.co/0mLQWV1/sportssnap-net.png" alt="Sports Snap" onerror="this.style.display='none'">
@@ -354,27 +339,12 @@
     </div>
   </div>
 
-  <!-- TICKER -->
-  <div id="ticker">
-    <div class="ticker-label">LIVE</div>
-    <div class="ticker-track">
-      <div class="ticker-inner">
-        <span>Join our Telegram @sportssnapofficial for the latest live stream links &amp; updates</span>
-        <span>www.sportssnap.net — Your #1 destination for live sports streaming</span>
-        <span>HD &amp; 4K streams available — bookmark us and never miss a match!</span>
-        <span>Join our Telegram @sportssnapofficial for the latest live stream links &amp; updates</span>
-        <span>www.sportssnap.net — Your #1 destination for live sports streaming</span>
-        <span>HD &amp; 4K streams available — bookmark us and never miss a match!</span>
-      </div>
-    </div>
+  <!-- SITE LABEL BAR (static, no scroll) -->
+  <div id="site-bar">
+    <span><em>sports</em>snap.net</span>
   </div>
 
-  <!-- LOGO -->
-  <div id="logo-badge">
-    <img src="https://i.ibb.co/0mLQWV1/sportssnap-net.png" alt="Sports Snap" onerror="this.style.display='none'">
-  </div>
-
-  <!-- Popup -->
+  <!-- Popup — desktop only -->
   <div id="popup">
     <div class="popup-box">
       <button class="popup-close" id="popup-close">✕</button>
@@ -387,6 +357,11 @@
       </a>
     </div>
   </div>
+
+  <!-- Telegram FAB — mobile only -->
+  <a id="tg-fab" href="https://t.me/sportssnapofficial" target="_blank" rel="noopener" title="Join Telegram">
+    <svg viewBox="0 0 64 64"><path d="M56.4,8.2l-51.2,20c-1.7,0.6-1.6,3,0.1,3.5l9.7,2.9c2.1,0.6,3.8,2.2,4.4,4.3l3.8,12.1c0.5,1.6,2.5,2.1,3.7,0.9l5.2-5.3c0.9-0.9,2.2-1,3.2-0.3l11.5,8.4c1.6,1.2,3.9,0.3,4.3-1.7l8.7-41.8C60.4,9.1,58.4,7.4,56.4,8.2z M50,17.4L29.4,35.6c-1.1,1-1.9,2.4-2,3.9c-0.2,1.5-2.3,1.7-2.8,0.3l-0.9-3c-0.7-2.2,0.2-4.5,2.1-5.7l23.5-14.6C49.9,16.1,50.5,16.9,50,17.4z"/></svg>
+  </a>
 
 </div><!-- /player-shell -->
 
@@ -415,10 +390,9 @@
   }
 
   function getParam(name) {
-    const url = window.location.href;
     const escaped = name.replace(/[\[\]]/g, '\\$&');
     const regex = new RegExp('[?&]' + escaped + '(=([^&#]*)|&|#|$)');
-    const results = regex.exec(url);
+    const results = regex.exec(window.location.href);
     if (!results) return null;
     if (!results[2]) return '';
     return decodeURIComponent(results[2].replace(/\+/g, ' '));
@@ -436,14 +410,12 @@
   function loadIframe(url, sandbox) {
     document.getElementById('player').style.display = 'none';
     iframeEl.style.display = 'block';
-
     if (sandbox === true || sandbox === 'yes' || sandbox === 1) {
       iframeEl.setAttribute('sandbox',
         'allow-scripts allow-same-origin allow-presentation allow-orientation-lock');
     } else {
       iframeEl.removeAttribute('sandbox');
     }
-
     iframeEl.src = url;
     iframeOverlay.classList.add('active');
     showLoader(false);
@@ -490,45 +462,22 @@
       }
     };
 
-    // DRM for DASH streams
-    if (drmConfig) {
-      playerSetup.drm = drmConfig;
-    }
+    if (drmConfig) playerSetup.drm = drmConfig;
 
     const playerInstance = jwplayer('player');
     playerInstance.setup(playerSetup);
 
-    playerInstance.on('ready', function () {
-      showLoader(false);
-    });
-
-    playerInstance.on('error', function (e) {
-      console.error('JW Error:', e);
-      showError('Stream unavailable');
-    });
-
-    playerInstance.on('setupError', function (e) {
-      console.error('JW Setup Error:', e);
-      showError('Stream unavailable');
-    });
-
-    /* Override JW's fullscreen button to target the shell */
-    playerInstance.on('fullscreen', function (e) {
-      // JW fires this — we intercept via our shell fullscreen below
-    });
+    playerInstance.on('ready', () => showLoader(false));
+    playerInstance.on('error', (e) => { console.error('JW Error:', e); showError('Stream unavailable'); });
+    playerInstance.on('setupError', (e) => { console.error('JW Setup Error:', e); showError('Stream unavailable'); });
   }
 
   /* ── Main stream loader ── */
   async function loadStream() {
     const key = getParam('sportssnap');
-    if (!key) {
-      showLoader(false);
-      showError('No stream key provided');
-      return;
-    }
+    if (!key) { showLoader(false); showError('No stream key provided'); return; }
 
     showLoader(true);
-
     try {
       const data   = await (await fetch('https://sportssnap.github.io/playlist/stream.json')).json();
       const stream = data[key];
@@ -538,29 +487,21 @@
       const meta = { title: '', image: '' };
 
       if (typeof stream === 'string') {
-        url = stream;
+        url  = stream;
         type = detectType(url);
       } else {
-        url   = stream.url || stream.iframe || '';
-        meta.title = stream.title || '';
-        meta.image = stream.image || '';
-
-        if (stream.drm) drmConfig = stream.drm;
-        sandboxFlag = stream.sandbox || false;
-
+        url          = stream.url || stream.iframe || '';
+        meta.title   = stream.title || '';
+        meta.image   = stream.image || '';
+        drmConfig    = stream.drm || null;
+        sandboxFlag  = stream.sandbox || false;
         type = (stream.iframe || stream.type === 'iframe') ? 'iframe' : detectType(url);
       }
 
-      if (type === 'iframe') {
-        loadIframe(url, sandboxFlag);
-      } else {
-        initJW(url, type, drmConfig, meta);
-      }
+      if (type === 'iframe') loadIframe(url, sandboxFlag);
+      else                   initJW(url, type, drmConfig, meta);
 
-    } catch (err) {
-      console.error(err);
-      showError('Stream unavailable');
-    }
+    } catch (err) { console.error(err); showError('Stream unavailable'); }
   }
 
   /* ── Fullscreen helpers (target the shell) ── */
@@ -569,51 +510,43 @@
     if      (el.requestFullscreen)       el.requestFullscreen();
     else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
     else if (el.mozRequestFullScreen)    el.mozRequestFullScreen();
-    if (screen.orientation && screen.orientation.lock) {
+    if (screen.orientation && screen.orientation.lock)
       screen.orientation.lock('landscape').catch(() => {});
-    }
   }
-
   function exitFullscreen() {
     if      (document.exitFullscreen)       document.exitFullscreen();
     else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
     else if (document.mozCancelFullScreen)  document.mozCancelFullScreen();
   }
-
   function isFullscreen() {
     return !!(document.fullscreenElement ||
               document.webkitFullscreenElement ||
               document.mozFullScreenElement);
   }
 
-  /* Iframe overlay fullscreen button */
   iframeFsBtn.addEventListener('click', () => {
     isFullscreen() ? exitFullscreen() : goFullscreen();
   });
 
-  /* Intercept JW's own fullscreen button to use shell instead */
   document.addEventListener('click', (e) => {
     const fsBtn = e.target.closest(
       '.jw-icon-fullscreen, [aria-label="Fullscreen"], [aria-label="Exit Fullscreen"]'
     );
     if (!fsBtn) return;
-    e.preventDefault();
-    e.stopPropagation();
+    e.preventDefault(); e.stopPropagation();
     isFullscreen() ? exitFullscreen() : goFullscreen();
   }, true);
 
-  /* Update iframe fs icon on change */
   function onFsChange() {
-    if (!isFullscreen() && screen.orientation && screen.orientation.unlock) {
+    if (!isFullscreen() && screen.orientation && screen.orientation.unlock)
       screen.orientation.unlock();
-    }
     iframeFsIcon.querySelector('path').setAttribute('d', isFullscreen() ? FS_EXIT : FS_ENTER);
   }
   document.addEventListener('fullscreenchange',       onFsChange);
   document.addEventListener('webkitfullscreenchange', onFsChange);
   document.addEventListener('mozfullscreenchange',    onFsChange);
 
-  /* ── Popup ── */
+  /* ── Popup — desktop only (CSS hides it on touch devices) ── */
   setTimeout(() => popup.classList.add('show'), 7000);
   popupClose.addEventListener('click', () => popup.classList.remove('show'));
   popup.addEventListener('click', (e) => { if (e.target === popup) popup.classList.remove('show'); });
