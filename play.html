@@ -20,7 +20,6 @@
     :root {
       --red: #e8001d;
       --gray: rgba(255,255,255,0.55);
-      --bar-h: 28px;
     }
 
     *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
@@ -92,7 +91,7 @@
       pointer-events: none;
     }
     #iframe-overlay .ov-logo img {
-      width: 80px; height: auto; display: block;
+      width: 120px; height: auto; display: block;
       filter: drop-shadow(0 2px 8px rgba(0,0,0,0.7));
     }
 
@@ -133,32 +132,28 @@
         border-color: rgba(232,0,29,0.6);
       }
       #iframe-overlay .ov-fs-btn svg { width: 26px; height: 26px; }
-      #iframe-overlay .ov-logo img { width: 48px; }
+      #iframe-overlay .ov-logo img { width: 80px; }
     }
 
-    /* ── SITE LABEL BAR (replaces scrolling ticker) ── */
+    /* ── SITE LABEL — floating text only, no background ── */
     #site-bar {
       position: absolute;
       left: 0; right: 0;
-      bottom: 54px;
-      height: var(--bar-h);
-      background: rgba(0,0,0,0.65);
-      border-top: 1px solid rgba(232,0,29,0.4);
+      bottom: 62px;
       display: flex;
       align-items: center;
       justify-content: center;
       z-index: 9999;
-      backdrop-filter: blur(4px);
-      -webkit-backdrop-filter: blur(4px);
       pointer-events: none;
     }
     #site-bar span {
       font-family: 'Barlow Condensed', sans-serif;
-      font-size: 12px;
+      font-size: 13px;
       font-weight: 700;
       letter-spacing: 2.5px;
       text-transform: uppercase;
-      color: rgba(255,255,255,0.7);
+      color: rgba(255,255,255,0.75);
+      text-shadow: 0 1px 6px rgba(0,0,0,0.9);
     }
     #site-bar span em {
       font-style: normal;
@@ -452,7 +447,8 @@
       logo: {
         file: 'https://i.ibb.co/0mLQWV1/sportssnap-net.png',
         link: 'https://www.sportssnap.net',
-        position: 'top-right'
+        position: 'top-right',
+        width: '120px'
       },
       skin: { name: 'netflix' },
       sharing: { link: 'https://t.me/sportssnapofficial' },
