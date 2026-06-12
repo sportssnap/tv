@@ -72,16 +72,9 @@
       position: absolute;
       inset: 0;
       z-index: 20;
-      pointer-events: none;
+      pointer-events: none; /* always passthrough — only children with pointer-events:all are clickable */
     }
     #iframe-overlay.active { display: block; }
-
-    @media (hover: none) and (pointer: coarse) {
-      #iframe-overlay.active {
-        pointer-events: all;
-        background: transparent;
-      }
-    }
 
     /* Logo shown only in iframe overlay (top-left) */
     #iframe-overlay .ov-logo {
@@ -99,7 +92,7 @@
     #iframe-overlay .ov-fs-btn {
       position: absolute;
       bottom: 10px; right: 10px;
-      pointer-events: all;
+      pointer-events: all; /* only this button is tappable/clickable */
       width: 44px; height: 44px;
       background: rgba(0,0,0,0.7);
       border: 1px solid rgba(255,255,255,0.25);
@@ -296,8 +289,6 @@
       --bg-white: #f7f7f7;
       --bg-black: #181919;
     }
-
-
 
     /* Fullscreen */
     #player-shell:fullscreen,
