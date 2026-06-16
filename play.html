@@ -5,215 +5,380 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Sports Snap TV</title>
 
-  <!-- ── JW Player ── -->
-  <script src="https://content.jwplatform.com/libraries/KB5zFt7A.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/p2p-media-loader-hlsjs@latest/build/p2p-media-loader-hlsjs.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@hola.org/jwplayer-hlsjs@latest/dist/jwplayer.hlsjs.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/hls.js@0.14.17"></script>
-
-  <!-- ── Shaka Player ── -->
+  <!-- Shaka Player UI -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.3.6/controls.min.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.3.6/shaka-player.ui.min.js"></script>
+
+  <!-- Cast sender (Chromecast support) -->
+  <script defer src="https://www.gstatic.com/cv/js/sender/v1/cast_sender.js"></script>
 
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800&family=Barlow:wght@400;500&display=swap');
 
-    :root { --red:#e8001d; --gray:rgba(255,255,255,0.55); }
+    :root {
+      --red: #e8001d;
+      --gray: rgba(255,255,255,0.55);
+    }
 
     *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
 
     html, body {
       width:100%; height:100%;
-      background:#000; overflow:hidden;
+      background:#000;
+      overflow:hidden;
       font-family:'Barlow', sans-serif;
-      -webkit-tap-highlight-color:transparent;
-      user-select:none;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
     }
 
+    /* ── SHELL ── */
     #player-shell {
-      position:relative; width:100%; height:100%;
-      background:#000; overflow:hidden;
+      position: relative;
+      width: 100%; height: 100%;
+      background: #000;
+      overflow: hidden;
     }
 
-    /* ══ JW wrapper ══ */
-    #jw-wrapper {
-      position:absolute; inset:0;
-      background:#000; display:none;
-    }
-    #jw-wrapper.active { display:block; }
-
-    #jw-player-el { width:100% !important; height:100% !important; }
-
-    /* ── Iframe fallback inside JW ── */
-    #iframe-el {
-      position:absolute; inset:0;
-      width:100%; height:100%;
-      border:none; background:#000;
-      display:none; z-index:5;
-    }
-
-    /* ── Iframe overlay ── */
-    #iframe-overlay {
-      display:none; position:absolute; inset:0;
-      z-index:20; pointer-events:none;
-    }
-    #iframe-overlay.active { display:block; }
-
-    #iframe-overlay .ov-logo {
-      position:absolute; top:15px; left:20px; pointer-events:none;
-    }
-    #iframe-overlay .ov-logo img {
-      width:120px; height:auto; display:block;
-      filter:drop-shadow(0 2px 8px rgba(0,0,0,0.7));
-    }
-    #iframe-overlay .ov-fs-btn {
-      position:absolute; bottom:10px; right:10px;
-      pointer-events:all;
-      width:44px; height:44px;
-      background:rgba(0,0,0,0.7);
-      border:1px solid rgba(255,255,255,0.25);
-      border-radius:8px;
-      display:flex; align-items:center; justify-content:center;
-      cursor:pointer; transition:background .15s;
-      backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);
-      touch-action:manipulation;
-    }
-    #iframe-overlay .ov-fs-btn:hover,
-    #iframe-overlay .ov-fs-btn:active { background:rgba(232,0,29,0.6); border-color:var(--red); }
-    #iframe-overlay .ov-fs-btn svg { width:22px; height:22px; fill:#fff; }
-
-    @media (hover:none) and (pointer:coarse) {
-      #iframe-overlay .ov-fs-btn { width:52px; height:52px; bottom:14px; right:14px; background:rgba(0,0,0,0.75); border-color:rgba(232,0,29,0.6); }
-      #iframe-overlay .ov-fs-btn svg { width:26px; height:26px; }
-      #iframe-overlay .ov-logo img { width:80px; }
-    }
-
-    /* ══ Shaka wrapper ══ */
-    #shaka-wrapper {
-      position:absolute; inset:0;
-      background:#000; display:none;
-    }
-    #shaka-wrapper.active { display:block; }
-
+    /* ── Shaka container ── */
     #shaka-container {
-      position:relative; width:100%; height:100%;
+      position: absolute;
+      inset: 0;
+      width: 100%; height: 100%;
     }
     #shaka-video {
-      width:100%; height:100%;
-      background:#000; display:block;
+      width: 100%; height: 100%;
+      background: #000;
+      display: block;
     }
 
-    /* Shaka red theme */
-    .shaka-controls-container { --shaka-highlight-color:#e8001d !important; }
-    .shaka-play-button { background-color:rgba(232,0,29,0.85) !important; }
-    .shaka-range-element::-webkit-slider-thumb { background:#e8001d !important; }
-    .shaka-range-element::-moz-range-thumb { background:#e8001d !important; }
+    /* Shaka red accent */
+    .shaka-controls-container { --shaka-highlight-color: #e8001d !important; }
+    .shaka-play-button { background-color: rgba(232,0,29,0.85) !important; }
+    .shaka-range-element::-webkit-slider-thumb { background: #e8001d !important; }
+    .shaka-range-element::-moz-range-thumb     { background: #e8001d !important; }
 
-    /* Shaka branding overlay */
-    #shaka-brand {
-      position:absolute; inset:0;
-      pointer-events:none; z-index:10;
+    /* ── Iframe fallback ── */
+    #iframe-el {
+      position: absolute;
+      inset: 0;
+      width: 100%; height: 100%;
+      border: none;
+      background: #000;
+      display: none;
+      z-index: 5;
     }
-    #shaka-logo {
-      position:absolute; top:12px; right:14px;
-      pointer-events:all;
-    }
-    #shaka-logo a { display:block; text-decoration:none; }
-    #shaka-logo img {
-      width:100px; height:auto; display:block;
-      filter:drop-shadow(0 2px 8px rgba(0,0,0,0.8));
-      opacity:0.92;
-    }
-    #shaka-label {
-      position:absolute; left:0; right:0; bottom:62px;
-      display:flex; align-items:center; justify-content:center;
-      pointer-events:none;
-    }
-    #shaka-label span {
-      font-family:'Barlow Condensed',sans-serif;
-      font-size:13px; font-weight:700;
-      letter-spacing:2.5px; text-transform:uppercase;
-      color:rgba(255,255,255,0.75);
-      text-shadow:0 1px 6px rgba(0,0,0,0.9);
-    }
-    #shaka-label span em { font-style:normal; color:var(--red); }
 
-    /* ══ SITE LABEL (JW/iframe mode) ══ */
+    /* ── IFRAME OVERLAY ── */
+    #iframe-overlay {
+      display: none;
+      position: absolute;
+      inset: 0;
+      z-index: 20;
+      pointer-events: none;
+    }
+    #iframe-overlay.active { display: block; }
+
+    #iframe-overlay .ov-logo {
+      position: absolute;
+      top: 15px; left: 20px;
+      pointer-events: none;
+    }
+    #iframe-overlay .ov-logo img {
+      width: 120px; height: auto; display: block;
+      filter: drop-shadow(0 2px 8px rgba(0,0,0,0.7));
+    }
+
+    #iframe-overlay .ov-fs-btn {
+      position: absolute;
+      bottom: 10px; right: 10px;
+      pointer-events: all;
+      width: 44px; height: 44px;
+      background: rgba(0,0,0,0.7);
+      border: 1px solid rgba(255,255,255,0.25);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      transition: background 0.15s;
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      touch-action: manipulation;
+    }
+    #iframe-overlay .ov-fs-btn:hover,
+    #iframe-overlay .ov-fs-btn:active { background: rgba(232,0,29,0.6); border-color: var(--red); }
+    #iframe-overlay .ov-fs-btn svg { width: 22px; height: 22px; fill: #fff; }
+
+    #ov-right-zone { display: none; }
+    @media (hover: none) and (pointer: coarse) {
+      #ov-right-zone {
+        display: block;
+        position: absolute;
+        top: 0; right: 0;
+        width: 100px; height: 100%;
+        pointer-events: none;
+        z-index: 30;
+      }
+      #iframe-overlay .ov-fs-btn {
+        width: 52px; height: 52px;
+        bottom: 14px; right: 14px;
+        background: rgba(0,0,0,0.75);
+        border-color: rgba(232,0,29,0.6);
+      }
+      #iframe-overlay .ov-fs-btn svg { width: 26px; height: 26px; }
+      #iframe-overlay .ov-logo img { width: 80px; }
+    }
+
+    /* ── LOGO — top-right (Shaka / non-iframe) ── */
+    #brand-logo {
+      position: absolute;
+      top: 12px; right: 14px;
+      z-index: 200;
+      pointer-events: all;
+    }
+    #brand-logo a { display: block; text-decoration: none; }
+    #brand-logo img {
+      width: 110px; height: auto; display: block;
+      filter: drop-shadow(0 2px 8px rgba(0,0,0,0.8));
+      opacity: 0.92;
+      transition: opacity .2s;
+    }
+    #brand-logo img:hover { opacity: 1; }
+    #brand-logo.hidden { display: none; }
+
+    @media (hover: none) and (pointer: coarse) {
+      #brand-logo img { width: 80px; }
+    }
+
+    /* ── SITE LABEL ── */
     #site-bar {
-      position:absolute; left:0; right:0; bottom:62px;
-      display:flex; align-items:center; justify-content:center;
-      z-index:9999; pointer-events:none;
+      position: absolute;
+      left: 0; right: 0;
+      bottom: 62px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      pointer-events: none;
     }
     #site-bar span {
-      font-family:'Barlow Condensed',sans-serif;
-      font-size:13px; font-weight:700;
-      letter-spacing:2.5px; text-transform:uppercase;
-      color:rgba(255,255,255,0.75);
-      text-shadow:0 1px 6px rgba(0,0,0,0.9);
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 13px; font-weight: 700;
+      letter-spacing: 2.5px; text-transform: uppercase;
+      color: rgba(255,255,255,0.75);
+      text-shadow: 0 1px 6px rgba(0,0,0,0.9);
     }
-    #site-bar span em { font-style:normal; color:var(--red); }
+    #site-bar span em { font-style: normal; color: var(--red); }
 
-    /* ══ Loader ══ */
+    /* ══ PRE-ROLL BANNER ══ */
+    #banner {
+      position: absolute;
+      inset: 0;
+      z-index: 300;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: #000;
+      transition: opacity .5s;
+    }
+    #banner.hidden { opacity: 0; pointer-events: none; }
+
+    #banner-logo {
+      width: 140px; height: auto;
+      filter: drop-shadow(0 4px 24px rgba(232,0,29,0.5));
+      animation: logo-pulse 2s ease-in-out infinite;
+      margin-bottom: 28px;
+    }
+    @keyframes logo-pulse {
+      0%,100% { filter: drop-shadow(0 4px 24px rgba(232,0,29,0.4)); transform: scale(1);    }
+      50%      { filter: drop-shadow(0 4px 40px rgba(232,0,29,0.8)); transform: scale(1.04); }
+    }
+
+    #countdown-wrap {
+      position: relative;
+      width: 72px; height: 72px;
+      margin-bottom: 20px;
+    }
+    #countdown-wrap svg {
+      position: absolute; inset: 0;
+      transform: rotate(-90deg);
+    }
+    #countdown-wrap svg circle.track {
+      fill: none; stroke: rgba(255,255,255,0.1); stroke-width: 4;
+    }
+    #countdown-wrap svg circle.prog {
+      fill: none; stroke: var(--red); stroke-width: 4;
+      stroke-linecap: round;
+      stroke-dasharray: 188.5;
+      stroke-dashoffset: 0;
+      transition: stroke-dashoffset 1s linear;
+    }
+    #countdown-num {
+      position: absolute; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 28px; font-weight: 800;
+      color: #fff;
+    }
+
+    #banner-tagline {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 13px; font-weight: 700;
+      letter-spacing: 3px; text-transform: uppercase;
+      color: rgba(255,255,255,0.55);
+    }
+    #banner-tagline em { font-style: normal; color: var(--red); }
+
+    #skip-btn {
+      display: none;
+      margin-top: 24px;
+      padding: 8px 22px;
+      border: 1px solid rgba(255,255,255,0.3);
+      border-radius: 6px;
+      background: rgba(255,255,255,0.06);
+      backdrop-filter: blur(6px);
+      color: #fff;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 13px; font-weight: 700;
+      letter-spacing: 2px; text-transform: uppercase;
+      cursor: pointer;
+      transition: background .15s, border-color .15s;
+    }
+    #skip-btn:hover,
+    #skip-btn:active { background: rgba(232,0,29,0.5); border-color: var(--red); }
+
+    /* ── Loader ── */
     #loader {
-      position:absolute; inset:0;
-      display:flex; flex-direction:column;
-      align-items:center; justify-content:center;
-      background:#000; z-index:50; gap:16px;
-      transition:opacity 0.4s;
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: #000;
+      z-index: 400;
+      gap: 16px;
+      transition: opacity 0.4s;
     }
-    #loader.hidden { opacity:0; pointer-events:none; }
+    #loader.hidden { opacity: 0; pointer-events: none; }
     .spinner-ring {
-      width:48px; height:48px;
-      border:3px solid rgba(255,255,255,0.08);
-      border-top-color:var(--red);
-      border-radius:50%;
-      animation:spin 0.9s linear infinite;
+      width: 48px; height: 48px;
+      border: 3px solid rgba(255,255,255,0.08);
+      border-top-color: var(--red);
+      border-radius: 50%;
+      animation: spin 0.9s linear infinite;
     }
-    @keyframes spin { to { transform:rotate(360deg); } }
+    @keyframes spin { to { transform: rotate(360deg); } }
     #loader p {
-      font-family:'Barlow Condensed',sans-serif;
-      font-size:12px; letter-spacing:2px;
-      text-transform:uppercase; color:var(--gray);
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 12px; letter-spacing: 2px;
+      text-transform: uppercase; color: var(--gray);
     }
 
-    /* ══ Error ══ */
+    /* ── Error ── */
     #error-msg {
-      position:absolute; inset:0;
-      display:none; flex-direction:column;
-      align-items:center; justify-content:center;
-      gap:10px; z-index:48;
+      position: absolute;
+      inset: 0;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 10px; z-index: 48;
     }
-    #error-msg.show { display:flex; }
-    #error-msg svg { width:40px; height:40px; fill:var(--red); opacity:0.7; }
+    #error-msg.show { display: flex; }
+    #error-msg svg { width: 40px; height: 40px; fill: var(--red); opacity: 0.7; }
     #error-msg p {
-      font-family:'Barlow Condensed',sans-serif;
-      font-size:14px; letter-spacing:1.5px;
-      text-transform:uppercase; color:var(--gray);
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 14px; letter-spacing: 1.5px;
+      text-transform: uppercase; color: var(--gray);
     }
 
-    /* ══ Telegram FAB ══ */
+    /* ── Popup — desktop only ── */
+    #popup {
+      display: none;
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,0.82);
+      z-index: 99999;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(4px);
+    }
+    @media (hover: hover) and (pointer: fine) {
+      #popup.show { display: flex; }
+    }
+    .popup-box {
+      background: #111;
+      border: 1px solid var(--red);
+      border-radius: 16px;
+      padding: 28px 24px 22px;
+      width: 90%; max-width: 300px;
+      text-align: center;
+      position: relative;
+      box-shadow: 0 0 40px rgba(232,0,29,0.3);
+      animation: popup-in 0.35s cubic-bezier(0.34,1.56,0.64,1) both;
+    }
+    @keyframes popup-in {
+      from { transform: scale(0.7); opacity: 0; }
+      to   { transform: scale(1);   opacity: 1; }
+    }
+    .popup-close {
+      position: absolute; top: -12px; right: -12px;
+      width: 28px; height: 28px;
+      background: var(--red); color: #fff;
+      border: none; border-radius: 50%;
+      font-size: 15px; font-weight: 700;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .popup-logo { width: 54px; height: 54px; border-radius: 50%; margin-bottom: 12px; }
+    .popup-box h2 {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 22px; font-weight: 800;
+      text-transform: uppercase; color: #fff; margin-bottom: 6px;
+    }
+    .popup-box p { font-size: 13px; color: var(--gray); line-height: 1.5; margin-bottom: 16px; }
+    .popup-btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 10px 22px;
+      background: var(--red); color: #fff;
+      border-radius: 8px; text-decoration: none;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 15px; font-weight: 700; letter-spacing: 0.5px;
+      transition: background 0.15s;
+    }
+    .popup-btn:hover { background: #c0001a; }
+
+    /* ── Telegram FAB — mobile only ── */
     #tg-fab {
-      display:flex; position:absolute;
-      bottom:70px; right:16px; z-index:9999;
-      width:52px; height:52px; border-radius:50%;
-      background:#0088cc;
-      align-items:center; justify-content:center;
-      text-decoration:none;
-      box-shadow:0 2px 12px rgba(0,136,204,0.5);
-      animation:tg-pulse 1.5s ease-out infinite;
+      display: none;
+      position: absolute;
+      bottom: 70px; right: 16px;
+      z-index: 9999;
+      width: 52px; height: 52px;
+      border-radius: 50%;
+      background: #0088cc;
+      align-items: center;
+      justify-content: center;
+      text-decoration: none;
+      box-shadow: 0 2px 12px rgba(0,136,204,0.5);
+      animation: tg-pulse 1.5s ease-out infinite;
     }
-    #tg-fab svg { fill:#fff; width:26px; height:26px; }
+    #tg-fab svg { fill: #fff; width: 26px; height: 26px; }
     @keyframes tg-pulse {
-      0%   { box-shadow:0 0 0 0 rgba(0,136,204,0.55); }
-      80%  { box-shadow:0 0 0 14px rgba(0,136,204,0); }
-      100% { box-shadow:0 0 0 0 rgba(0,136,204,0); }
+      0%   { box-shadow: 0 0 0 0   rgba(0,136,204,0.55); }
+      80%  { box-shadow: 0 0 0 14px rgba(0,136,204,0);   }
+      100% { box-shadow: 0 0 0 0   rgba(0,136,204,0);    }
+    }
+    @media (hover: none) and (pointer: coarse) {
+      #tg-fab { display: flex; }
     }
 
-    /* ══ Fullscreen ══ */
+    /* ── Fullscreen ── */
     #player-shell:fullscreen,
     #player-shell:-webkit-full-screen,
     #player-shell:-moz-full-screen {
-      width:100vw !important; height:100vh !important;
+      width: 100vw !important;
+      height: 100vh !important;
     }
   </style>
 </head>
@@ -221,48 +386,96 @@
 
 <div id="player-shell">
 
-  <!-- ══ JW Player wrapper ══ -->
-  <div id="jw-wrapper">
-    <div id="jw-player-el">Loading player…</div>
-    <iframe id="iframe-el" allowfullscreen allow="autoplay; encrypted-media; picture-in-picture"></iframe>
-    <div id="iframe-overlay">
-      <div class="ov-logo">
-        <img src="https://i.ibb.co/0mLQWV1/sportssnap-net.png" alt="Sports Snap" onerror="this.style.display='none'">
-      </div>
-      <button class="ov-fs-btn" id="iframe-fs-btn" title="Fullscreen">
-        <svg id="iframe-fs-icon" viewBox="0 0 24 24"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg>
-      </button>
-    </div>
+  <!-- Shaka Player -->
+  <div id="shaka-container" data-shaka-player-container>
+    <video id="shaka-video" data-shaka-player autoplay playsinline></video>
   </div>
 
-  <!-- ══ Shaka Player wrapper ══ -->
-  <div id="shaka-wrapper">
-    <div id="shaka-container" data-shaka-player-container>
-      <video id="shaka-video" data-shaka-player autoplay playsinline></video>
+  <!-- Iframe fallback -->
+  <iframe id="iframe-el"
+    allowfullscreen
+    allow="autoplay; encrypted-media; picture-in-picture">
+  </iframe>
+
+  <!-- Iframe overlay — logo + fullscreen btn -->
+  <div id="iframe-overlay">
+    <div class="ov-logo">
+      <img src="https://i.ibb.co/0mLQWV1/sportssnap-net.png" alt="Sports Snap" onerror="this.style.display='none'">
     </div>
-    <div id="shaka-brand">
-      <div id="shaka-logo">
-        <a href="https://www.sportssnap.net" target="_blank" rel="noopener">
-          <img src="https://i.ibb.co/0mLQWV1/sportssnap-net.png" alt="Sports Snap" onerror="this.style.display='none'">
-        </a>
-      </div>
-      <div id="shaka-label"><span><em>sports</em>snap.net</span></div>
-    </div>
+    <div id="ov-right-zone"></div>
+    <button class="ov-fs-btn" id="iframe-fs-btn" title="Fullscreen">
+      <svg id="iframe-fs-icon" viewBox="0 0 24 24">
+        <path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/>
+      </svg>
+    </button>
   </div>
 
-  <!-- Site label (JW/iframe only) -->
-  <div id="site-bar"><span><em>sports</em>snap.net</span></div>
+  <!-- Logo — top-right (Shaka / non-iframe mode) -->
+  <div id="brand-logo">
+    <a href="https://www.sportssnap.net" target="_blank" rel="noopener">
+      <img src="https://i.ibb.co/0mLQWV1/sportssnap-net.png"
+           alt="Sports Snap"
+           onerror="this.style.display='none'">
+    </a>
+  </div>
 
-  <!-- Loader / Error -->
+  <!-- Site label -->
+  <div id="site-bar">
+    <span><em>sports</em>snap.net</span>
+  </div>
+
+  <!-- PRE-ROLL BANNER -->
+  <div id="banner">
+    <img id="banner-logo"
+         src="https://i.ibb.co/0mLQWV1/sportssnap-net.png"
+         alt="Sports Snap"
+         onerror="this.style.display='none'">
+    <div id="countdown-wrap">
+      <svg viewBox="0 0 64 64" width="72" height="72">
+        <circle class="track" cx="32" cy="32" r="30"/>
+        <circle class="prog"  cx="32" cy="32" r="30" id="prog-circle"/>
+      </svg>
+      <div id="countdown-num">5</div>
+    </div>
+    <div id="banner-tagline"><em>sports</em>snap.net — loading stream…</div>
+    <button id="skip-btn">Skip ›</button>
+  </div>
+
+  <!-- Loader -->
   <div id="loader"><div class="spinner-ring"></div><p>Loading stream…</p></div>
+
+  <!-- Error -->
   <div id="error-msg">
-    <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+    <svg viewBox="0 0 24 24">
+      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+    </svg>
     <p>Stream unavailable</p>
   </div>
 
-  <!-- Telegram FAB -->
+  <!-- Popup — desktop only -->
+  <div id="popup">
+    <div class="popup-box">
+      <button class="popup-close" id="popup-close">✕</button>
+      <img class="popup-logo" src="https://i.ibb.co/wzpjWHt/Sports-Snap-circle.png" alt="Sports Snap" onerror="this.style.display='none'">
+      <h2>Join Sports Snap</h2>
+      <p>Get the latest live stream links &amp; updates on our Telegram channel</p>
+      <a class="popup-btn" href="https://t.me/sportssnapofficial" target="_blank" rel="noopener">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M9.78 18.65l.28-4.23 7.68-6.92c.34-.31-.07-.46-.52-.19L7.74 13.3 3.64 12c-.88-.25-.89-.86.2-1.3l15.97-6.16c.73-.33 1.43.18 1.15 1.3l-2.72 12.81c-.19.91-.74 1.13-1.5.71L12.6 16.3l-1.99 1.93c-.23.23-.42.42-.83.42z"/>
+        </svg>
+        Join Telegram
+      </a>
+    </div>
+  </div>
+
+  <!-- Telegram FAB — mobile only -->
   <a id="tg-fab" href="https://t.me/sportssnapofficial" target="_blank" rel="noopener" title="Join Telegram">
-    <svg viewBox="0 0 64 64"><path d="M56.4,8.2l-51.2,20c-1.7,0.6-1.6,3,0.1,3.5l9.7,2.9c2.1,0.6,3.8,2.2,4.4,4.3l3.8,12.1c0.5,1.6,2.5,2.1,3.7,0.9l5.2-5.3c0.9-0.9,2.2-1,3.2-0.3l11.5,8.4c1.6,1.2,3.9,0.3,4.3-1.7l8.7-41.8C60.4,9.1,58.4,7.4,56.4,8.2z M50,17.4L29.4,35.6c-1.1,1-1.9,2.4-2,3.9c-0.2,1.5-2.3,1.7-2.8,0.3l-0.9-3c-0.7-2.2,0.2-4.5,2.1-5.7l23.5-14.6C49.9,16.1,50.5,16.9,50,17.4z"/></svg>
+    <svg viewBox="0 0 64 64">
+      <path d="M56.4,8.2l-51.2,20c-1.7,0.6-1.6,3,0.1,3.5l9.7,2.9c2.1,0.6,3.8,2.2,4.4,4.3l3.8,12.1
+               c0.5,1.6,2.5,2.1,3.7,0.9l5.2-5.3c0.9-0.9,2.2-1,3.2-0.3l11.5,8.4c1.6,1.2,3.9,0.3,4.3-1.7l8.7-41.8
+               C60.4,9.1,58.4,7.4,56.4,8.2z M50,17.4L29.4,35.6c-1.1,1-1.9,2.4-2,3.9c-0.2,1.5-2.3,1.7-2.8,0.3
+               l-0.9-3c-0.7-2.2,0.2-4.5,2.1-5.7l23.5-14.6C49.9,16.1,50.5,16.9,50,17.4z"/>
+    </svg>
   </a>
 
 </div><!-- /player-shell -->
@@ -272,38 +485,44 @@
   'use strict';
 
   const shell         = document.getElementById('player-shell');
-  const jwWrapper     = document.getElementById('jw-wrapper');
-  const shakaWrapper  = document.getElementById('shaka-wrapper');
   const iframeEl      = document.getElementById('iframe-el');
   const iframeOverlay = document.getElementById('iframe-overlay');
   const iframeFsBtn   = document.getElementById('iframe-fs-btn');
   const iframeFsIcon  = document.getElementById('iframe-fs-icon');
+  const brandLogo     = document.getElementById('brand-logo');
   const loader        = document.getElementById('loader');
   const errorMsg      = document.getElementById('error-msg');
-  const siteBar       = document.getElementById('site-bar');
+  const popup         = document.getElementById('popup');
+  const popupClose    = document.getElementById('popup-close');
+  const banner        = document.getElementById('banner');
+  const skipBtn       = document.getElementById('skip-btn');
+  const progCircle    = document.getElementById('prog-circle');
+  const countdownNum  = document.getElementById('countdown-num');
+
+  const CIRCUMFERENCE = 2 * Math.PI * 30; // ~188.5
+  const BANNER_SECS   = 5;
+  const SKIP_AFTER    = 3;
 
   const FS_ENTER = 'M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z';
   const FS_EXIT  = 'M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z';
 
-  function showLoader(v) { loader.classList.toggle('hidden', !v); }
+  /* ── Helpers ── */
+  function showLoader(v)  { loader.classList.toggle('hidden', !v); }
   function showError(msg) {
     showLoader(false);
+    hideBanner();
     errorMsg.classList.add('show');
     if (msg) errorMsg.querySelector('p').textContent = msg;
   }
 
-  /* ── Parse params: support ?sportssnap=, ?jw-sportssnap=, ?shaka-sportssnap= ── */
   function getParam(name) {
-    const m = new RegExp('[?&]' + name.replace(/[\[\]]/g,'\\$&') + '=([^&#]*)').exec(window.location.search);
-    return m ? decodeURIComponent(m[1].replace(/\+/g,' ')) : null;
+    const escaped = name.replace(/[\[\]]/g, '\\$&');
+    const regex   = new RegExp('[?&]' + escaped + '(=([^&#]*)|&|#|$)');
+    const results = regex.exec(window.location.href);
+    if (!results) return null;
+    if (!results[2]) return '';
+    return decodeURIComponent(results[2].replace(/\+/g, ' '));
   }
-
-  const jwKey    = getParam('jw-sportssnap');
-  const shakaKey = getParam('shaka-sportssnap');
-  const legacyKey= getParam('sportssnap');
-
-  const mode = jwKey ? 'jw' : shakaKey ? 'shaka' : 'jw';
-  const key  = jwKey || shakaKey || legacyKey;
 
   function detectType(url) {
     if (!url) return 'unknown';
@@ -313,55 +532,31 @@
     return 'iframe';
   }
 
-  /* ══════════════════════════════════════════
-     JW — iframe fallback
-  ══════════════════════════════════════════ */
-  function loadIframe(url, sandbox) {
-    document.getElementById('jw-player-el').style.display = 'none';
-    iframeEl.style.display = 'block';
-    sandbox
-      ? iframeEl.setAttribute('sandbox','allow-scripts allow-same-origin allow-presentation allow-orientation-lock')
-      : iframeEl.removeAttribute('sandbox');
-    iframeEl.src = url;
-    iframeOverlay.classList.add('active');
-    showLoader(false);
+  /* ══ PRE-ROLL BANNER ══ */
+  let bannerTimer = null;
+
+  function startBanner(onDone) {
+    banner.classList.remove('hidden');
+    let remaining = BANNER_SECS;
+
+    progCircle.style.strokeDasharray  = CIRCUMFERENCE;
+    progCircle.style.strokeDashoffset = 0;
+
+    function tick() {
+      remaining--;
+      countdownNum.textContent = remaining;
+      progCircle.style.strokeDashoffset = CIRCUMFERENCE * (1 - remaining / BANNER_SECS);
+      if (remaining <= BANNER_SECS - SKIP_AFTER) skipBtn.style.display = 'inline-block';
+      if (remaining <= 0) { clearInterval(bannerTimer); hideBanner(); onDone(); }
+    }
+
+    bannerTimer = setInterval(tick, 1000);
+    skipBtn.onclick = () => { clearInterval(bannerTimer); hideBanner(); onDone(); };
   }
 
-  /* ══════════════════════════════════════════
-     JW — native HLS/DASH
-  ══════════════════════════════════════════ */
-  function initJW(url, type, drmConfig, meta) {
-    showLoader(true);
-    errorMsg.classList.remove('show');
-    jwplayer.key = 'XSuP4qMl+9tK17QNb+4+th2Pm9AWgMO/cYH8CI0HGGr7bdjo';
+  function hideBanner() { banner.classList.add('hidden'); }
 
-    const sources = [];
-    if (type === 'hls')       sources.push({ file:url, type:'hls',  label:'HLS',  default:true });
-    else if (type === 'dash') sources.push({ file:url, type:'dash', label:'DASH', default:true });
-    else                      sources.push({ file:url, default:true });
-
-    const setup = {
-      playlist:[{ title:meta.title||'', description:'Sports Snap Live',
-        image:meta.image||'https://i.ibb.co/0mLQWV1/sportssnap-net.png', sources }],
-      width:'100%', height:'100%', autostart:true, mute:false, cast:{},
-      logo:{ file:'https://i.ibb.co/0mLQWV1/sportssnap-net.png',
-             link:'https://www.sportssnap.net', position:'top-right' },
-      skin:{ name:'netflix' },
-      sharing:{ link:'https://t.me/sportssnapofficial' },
-      hlsjsConfig:{ debug:false, p2pConfig:{ live:true } }
-    };
-    if (drmConfig) setup.drm = drmConfig;
-
-    const player = jwplayer('jw-player-el');
-    player.setup(setup);
-    player.on('ready',      () => showLoader(false));
-    player.on('error',      (e) => { console.error('JW Error:', e); showError('Stream unavailable'); });
-    player.on('setupError', (e) => { console.error('JW Setup:', e); showError('Stream unavailable'); });
-  }
-
-  /* ══════════════════════════════════════════
-     SHAKA
-  ══════════════════════════════════════════ */
+  /* ══ Shaka init ══ */
   async function initShaka(url, drmConfig) {
     showLoader(true);
     errorMsg.classList.remove('show');
@@ -389,11 +584,21 @@
 
     if (drmConfig) {
       if (drmConfig.clearkey) {
-        player.configure({ drm:{ clearKeys:{ [drmConfig.clearkey.keyId]: drmConfig.clearkey.key } } });
+        player.configure({
+          drm: { clearKeys: { [drmConfig.clearkey.keyId]: drmConfig.clearkey.key } }
+        });
       } else {
         player.configure({ drm: drmConfig });
       }
     }
+
+    /* Route Shaka fullscreen through native shell fullscreen */
+    container.addEventListener('click', (e) => {
+      const btn = e.target.closest('[aria-label="Fullscreen"], [aria-label="Exit Fullscreen"], .shaka-fullscreen-button');
+      if (!btn) return;
+      e.preventDefault(); e.stopPropagation();
+      isFullscreen() ? exitFullscreen() : goFullscreen();
+    }, true);
 
     try {
       await player.load(url);
@@ -405,74 +610,64 @@
     }
   }
 
-  /* ══════════════════════════════════════════
-     MAIN LOADER
-  ══════════════════════════════════════════ */
+  /* ══ Iframe fallback ══ */
+  function loadIframe(url, sandbox) {
+    /* In iframe mode the overlay has its own logo; hide the Shaka one */
+    brandLogo.classList.add('hidden');
+
+    if (sandbox === true || sandbox === 'yes' || sandbox === 1) {
+      iframeEl.setAttribute('sandbox',
+        'allow-scripts allow-same-origin allow-presentation allow-orientation-lock');
+    } else {
+      iframeEl.removeAttribute('sandbox');
+    }
+    iframeEl.src = url;
+    iframeEl.style.display = 'block';
+    iframeOverlay.classList.add('active');
+    showLoader(false);
+  }
+
+  /* ══ Main loader ══ */
   async function loadStream() {
+    const key = getParam('sportssnap');
     if (!key) { showLoader(false); showError('No stream key provided'); return; }
 
     showLoader(true);
 
-    /* Activate the correct wrapper */
-    if (mode === 'shaka') {
-      shakaWrapper.classList.add('active');
-      siteBar.style.display = 'none'; /* Shaka has its own label */
-    } else {
-      jwWrapper.classList.add('active');
-      siteBar.style.display = 'flex';
-    }
+    startBanner(async () => {
+      try {
+        const data   = await (await fetch('https://sportssnap.github.io/playlist/stream.json')).json();
+        const stream = data[key];
+        if (!stream) { showError('Stream unavailable'); return; }
 
-    try {
-      const data   = await (await fetch('https://sportssnap.github.io/playlist/stream.json')).json();
-      const stream = data[key];
-      if (!stream) { showError('Stream unavailable'); return; }
+        let url, drmConfig = null, type, sandboxFlag = false;
 
-      let url, drmConfig = null, type, sandboxFlag = false;
-      const meta = { title:'', image:'' };
-
-      if (typeof stream === 'string') {
-        url  = stream;
-        type = detectType(url);
-      } else {
-        url          = stream.url || stream.iframe || '';
-        meta.title   = stream.title  || '';
-        meta.image   = stream.image  || '';
-        if (stream.drm && stream.drm.clearKeys) {
-          const [[kId, k]] = Object.entries(stream.drm.clearKeys);
-          drmConfig = { clearkey:{ keyId:kId, key:k } };
-        } else if (stream.drm) {
-          drmConfig = stream.drm;
-        }
-        sandboxFlag = stream.sandbox || false;
-        type = (stream.iframe || stream.type === 'iframe') ? 'iframe' : detectType(url);
-      }
-
-      if (mode === 'shaka') {
-        if (type === 'iframe') {
-          /* Shaka fallback: show iframe directly inside shaka wrapper */
-          const ifr = document.createElement('iframe');
-          ifr.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;border:none;background:#000;z-index:5;';
-          ifr.allowFullscreen = true;
-          ifr.src = url;
-          document.getElementById('shaka-container').appendChild(ifr);
-          showLoader(false);
+        if (typeof stream === 'string') {
+          url  = stream;
+          type = detectType(url);
         } else {
-          initShaka(url, drmConfig);
+          url         = stream.url || stream.iframe || '';
+          if (stream.drm && stream.drm.clearKeys) {
+            const [[kId, k]] = Object.entries(stream.drm.clearKeys);
+            drmConfig = { clearkey: { keyId: kId, key: k } };
+          } else if (stream.drm) {
+            drmConfig = stream.drm;
+          }
+          sandboxFlag = stream.sandbox || false;
+          type = (stream.iframe || stream.type === 'iframe') ? 'iframe' : detectType(url);
         }
-      } else {
-        if (type === 'iframe') loadIframe(url, sandboxFlag);
-        else                   initJW(url, type, drmConfig, meta);
-      }
 
-    } catch (err) {
-      console.error(err);
-      showError('Stream unavailable');
-    }
+        if (type === 'iframe') loadIframe(url, sandboxFlag);
+        else                   initShaka(url, drmConfig);
+
+      } catch (err) {
+        console.error(err);
+        showError('Stream unavailable');
+      }
+    });
   }
 
-  /* ══════════════════════════════════════════
-     FULLSCREEN
-  ══════════════════════════════════════════ */
+  /* ══ Fullscreen ══ */
   function goFullscreen() {
     const el = shell;
     if      (el.requestFullscreen)       el.requestFullscreen();
@@ -487,29 +682,28 @@
     else if (document.mozCancelFullScreen)  document.mozCancelFullScreen();
   }
   function isFullscreen() {
-    return !!(document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement);
+    return !!(document.fullscreenElement ||
+              document.webkitFullscreenElement ||
+              document.mozFullScreenElement);
   }
 
   iframeFsBtn.addEventListener('click', () => isFullscreen() ? exitFullscreen() : goFullscreen());
 
-  document.addEventListener('click', (e) => {
-    const fsBtn = e.target.closest('.jw-icon-fullscreen, [aria-label="Fullscreen"], [aria-label="Exit Fullscreen"]');
-    if (!fsBtn) return;
-    e.preventDefault(); e.stopPropagation();
-    isFullscreen() ? exitFullscreen() : goFullscreen();
-  }, true);
-
   function onFsChange() {
     if (!isFullscreen() && screen.orientation && screen.orientation.unlock)
       screen.orientation.unlock();
-    const path = iframeFsIcon.querySelector('path');
-    if (path) path.setAttribute('d', isFullscreen() ? FS_EXIT : FS_ENTER);
+    iframeFsIcon.querySelector('path').setAttribute('d', isFullscreen() ? FS_EXIT : FS_ENTER);
   }
   document.addEventListener('fullscreenchange',       onFsChange);
   document.addEventListener('webkitfullscreenchange', onFsChange);
   document.addEventListener('mozfullscreenchange',    onFsChange);
 
-  /* Boot */
+  /* ══ Popup — desktop only (CSS guards touch) ══ */
+  setTimeout(() => popup.classList.add('show'), 7000);
+  popupClose.addEventListener('click', () => popup.classList.remove('show'));
+  popup.addEventListener('click', (e) => { if (e.target === popup) popup.classList.remove('show'); });
+
+  /* ══ Boot ══ */
   window.addEventListener('load', loadStream);
 })();
 </script>
