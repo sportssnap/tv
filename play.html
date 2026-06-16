@@ -5,104 +5,65 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Sports Snap TV</title>
 
-  <!-- Shaka Player 4.11 — latest stable with all UI features -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.11.2/controls.min.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.11.2/shaka-player.ui.min.js"></script>
 
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800&family=Barlow:wght@400;500&display=swap');
 
-    :root {
-      --red: #e8001d;
-      --red-glow: rgba(232,0,29,0.45);
-      --gray: rgba(255,255,255,0.55);
-      --surface: rgba(15,15,15,0.92);
-    }
-
+    :root { --red:#e8001d; --gray:rgba(255,255,255,0.55); }
     *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
 
     html, body {
-      width:100%; height:100%;
-      background:#000; overflow:hidden;
-      font-family:'Barlow', sans-serif;
-      -webkit-tap-highlight-color: transparent;
-      user-select: none;
+      width:100%; height:100%; background:#000; overflow:hidden;
+      font-family:'Barlow',sans-serif;
+      -webkit-tap-highlight-color:transparent; user-select:none;
     }
 
-    #player-shell {
-      position:relative; width:100%; height:100%;
-      background:#000; overflow:hidden;
-    }
+    #player-shell { position:relative; width:100%; height:100%; background:#000; overflow:hidden; }
 
-    /* ── Shaka container ── */
-    #shaka-container {
-      position:absolute; inset:0;
-      width:100%; height:100%;
-      background:#000;
-    }
-    #shaka-video {
-      width:100%; height:100%;
-      background:#000; display:block;
-    }
+    /* ── Shaka ── */
+    #shaka-container { position:absolute; inset:0; width:100%; height:100%; background:#000; }
+    #shaka-video     { width:100%; height:100%; background:#000; display:block; }
     #shaka-container .shaka-video-container,
-    #shaka-container video {
-      width:100% !important;
-      height:100% !important;
-    }
+    #shaka-container video { width:100% !important; height:100% !important; }
 
-    /* ── Shaka UI red theme ── */
-    .shaka-controls-container {
-      --shaka-highlight-color: #e8001d !important;
-    }
+    /* Red theme */
+    .shaka-controls-container { --shaka-highlight-color:#e8001d !important; }
     .shaka-play-button {
-      background-color: rgba(232,0,29,0.88) !important;
-      border-radius: 50% !important;
-      box-shadow: 0 0 24px rgba(232,0,29,0.5) !important;
-    }
-    .shaka-play-button:hover {
-      background-color: rgba(232,0,29,1) !important;
+      background-color:rgba(232,0,29,0.88) !important;
+      border-radius:50% !important;
+      box-shadow:0 0 28px rgba(232,0,29,0.55) !important;
+      transition:opacity .35s ease, transform .35s ease !important;
     }
     .shaka-range-element::-webkit-slider-thumb { background:#e8001d !important; }
     .shaka-range-element::-moz-range-thumb     { background:#e8001d !important; }
-    .shaka-seek-bar .shaka-range-element::-webkit-slider-runnable-track { height:4px !important; }
 
-    /* Slightly taller bottom controls bar */
-    .shaka-bottom-controls { padding-bottom:6px !important; }
-    .shaka-controls-container[casting="true"] .shaka-cast-button { color:#e8001d !important; }
+    /* Controls fade — we drive this via JS adding/removing .ss-hidden */
+    .shaka-controls-container {
+      transition: opacity .5s ease !important;
+    }
+    .shaka-controls-container.ss-hidden {
+      opacity: 0 !important;
+      pointer-events: none !important;
+    }
 
-    /* ── Iframe fallback ── */
-    #iframe-el {
-      position:absolute; inset:0;
-      width:100%; height:100%;
-      border:none; background:#000;
-      display:none; z-index:5;
-    }
-    #iframe-overlay {
-      display:none; position:absolute; inset:0;
-      z-index:20; pointer-events:none;
-    }
+    /* ── Iframe ── */
+    #iframe-el { position:absolute; inset:0; width:100%; height:100%; border:none; background:#000; display:none; z-index:5; }
+    #iframe-overlay { display:none; position:absolute; inset:0; z-index:20; pointer-events:none; }
     #iframe-overlay.active { display:block; }
-    #iframe-overlay .ov-logo {
-      position:absolute; top:15px; left:20px; pointer-events:none;
-    }
-    #iframe-overlay .ov-logo img {
-      width:140px; height:auto; display:block;
-      filter:drop-shadow(0 2px 8px rgba(0,0,0,0.7));
-    }
+    #iframe-overlay .ov-logo { position:absolute; top:15px; left:20px; pointer-events:none; }
+    #iframe-overlay .ov-logo img { width:140px; height:auto; display:block; filter:drop-shadow(0 2px 8px rgba(0,0,0,.7)); }
     #iframe-overlay .ov-fs-btn {
-      position:absolute; bottom:10px; right:10px;
-      pointer-events:all;
-      width:44px; height:44px;
-      background:rgba(0,0,0,0.7);
-      border:1px solid rgba(255,255,255,0.25); border-radius:8px;
+      position:absolute; bottom:10px; right:10px; pointer-events:all;
+      width:44px; height:44px; background:rgba(0,0,0,.7);
+      border:1px solid rgba(255,255,255,.25); border-radius:8px;
       display:flex; align-items:center; justify-content:center;
-      cursor:pointer; transition:background .15s;
-      backdrop-filter:blur(6px); touch-action:manipulation;
+      cursor:pointer; transition:background .15s; backdrop-filter:blur(6px); touch-action:manipulation;
     }
     #iframe-overlay .ov-fs-btn:hover,
-    #iframe-overlay .ov-fs-btn:active { background:rgba(232,0,29,0.6); border-color:var(--red); }
+    #iframe-overlay .ov-fs-btn:active { background:rgba(232,0,29,.6); border-color:var(--red); }
     #iframe-overlay .ov-fs-btn svg { width:22px; height:22px; fill:#fff; }
-
     #ov-right-zone { display:none; }
     @media (hover:none) and (pointer:coarse) {
       #ov-right-zone { display:block; position:absolute; top:0; right:0; width:100px; height:100%; pointer-events:none; z-index:30; }
@@ -111,146 +72,121 @@
       #iframe-overlay .ov-logo img { width:100px; }
     }
 
-    /* ── Brand logo top-right (Shaka mode) — BIGGER ── */
-    #brand-logo {
-      position:absolute; top:12px; right:14px;
-      z-index:500; pointer-events:all;
-    }
+    /* ── Brand logo top-right ── */
+    #brand-logo { position:absolute; top:12px; right:14px; z-index:500; pointer-events:all; }
     #brand-logo a { display:block; text-decoration:none; }
     #brand-logo img {
-      width:148px; height:auto; display:block;   /* bumped from 110px */
-      filter:drop-shadow(0 2px 12px rgba(0,0,0,0.85));
-      opacity:0.95; transition:opacity .2s;
+      width:148px; height:auto; display:block;
+      filter:drop-shadow(0 2px 12px rgba(0,0,0,.85));
+      opacity:.95; transition:opacity .2s;
     }
     #brand-logo img:hover { opacity:1; }
     #brand-logo.hidden { display:none; }
     @media (hover:none) and (pointer:coarse) { #brand-logo img { width:108px; } }
 
-    /* ── Site label ── */
+    /* ── Site bar ── */
     #site-bar {
       position:absolute; left:0; right:0; bottom:62px;
       display:flex; align-items:center; justify-content:center;
       z-index:9999; pointer-events:none;
     }
     #site-bar span {
-      font-family:'Barlow Condensed',sans-serif;
-      font-size:13px; font-weight:700;
+      font-family:'Barlow Condensed',sans-serif; font-size:13px; font-weight:700;
       letter-spacing:2.5px; text-transform:uppercase;
-      color:rgba(255,255,255,0.75);
-      text-shadow:0 1px 6px rgba(0,0,0,0.9);
+      color:rgba(255,255,255,.75); text-shadow:0 1px 6px rgba(0,0,0,.9);
     }
     #site-bar span em { font-style:normal; color:var(--red); }
 
-    /* ══ PRE-ROLL BANNER (shown during banner + loading) ══ */
+    /* ══ BANNER — always on top, z-index 9000, shown by default ══ */
     #banner {
-      position:absolute; inset:0; z-index:300;
+      position:absolute; inset:0; z-index:9000;
       display:flex; flex-direction:column;
       align-items:center; justify-content:center;
       background: radial-gradient(ellipse at center, #0d0d0d 0%, #000 70%);
-      transition:opacity .5s;
+      opacity:1; transition:opacity .55s ease;
+      pointer-events:all;
     }
-    #banner.hidden { opacity:0; pointer-events:none; }
+    #banner.hiding { opacity:0; pointer-events:none; }
+    #banner.gone   { display:none; }
 
-    /* Animated background grid */
+    /* Animated grid bg */
     #banner::before {
-      content:'';
-      position:absolute; inset:0;
+      content:''; position:absolute; inset:0;
       background-image:
-        linear-gradient(rgba(232,0,29,0.04) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(232,0,29,0.04) 1px, transparent 1px);
+        linear-gradient(rgba(232,0,29,.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(232,0,29,.04) 1px, transparent 1px);
       background-size:40px 40px;
       animation:grid-drift 20s linear infinite;
     }
-    @keyframes grid-drift {
-      from { background-position:0 0; }
-      to   { background-position:40px 40px; }
-    }
+    @keyframes grid-drift { from{background-position:0 0} to{background-position:40px 40px} }
 
-    /* Red top bar */
+    /* Red sweep top bar */
     #banner::after {
-      content:'';
-      position:absolute; top:0; left:0; right:0;
-      height:3px;
-      background: linear-gradient(90deg, transparent, var(--red), transparent);
+      content:''; position:absolute; top:0; left:0; right:0; height:3px;
+      background:linear-gradient(90deg,transparent,var(--red),transparent);
       animation:bar-sweep 2.5s ease-in-out infinite;
     }
-    @keyframes bar-sweep {
-      0%,100% { opacity:0.4; } 50% { opacity:1; }
-    }
+    @keyframes bar-sweep { 0%,100%{opacity:.4} 50%{opacity:1} }
 
     #banner-logo {
-      width:180px; height:auto;
-      position:relative; z-index:1;
-      filter:drop-shadow(0 4px 32px rgba(232,0,29,0.6));
+      width:190px; height:auto; position:relative; z-index:1;
+      filter:drop-shadow(0 4px 36px rgba(232,0,29,.65));
       animation:logo-pulse 2.2s ease-in-out infinite;
       margin-bottom:32px;
     }
     @keyframes logo-pulse {
-      0%,100% { filter:drop-shadow(0 4px 24px rgba(232,0,29,0.4)); transform:scale(1); }
-      50%      { filter:drop-shadow(0 4px 48px rgba(232,0,29,0.85)); transform:scale(1.045); }
+      0%,100%{ filter:drop-shadow(0 4px 24px rgba(232,0,29,.4)); transform:scale(1); }
+      50%    { filter:drop-shadow(0 4px 52px rgba(232,0,29,.9)); transform:scale(1.045); }
     }
 
-    #countdown-wrap {
-      position:relative; width:80px; height:80px;
-      margin-bottom:22px; z-index:1;
-    }
+    #countdown-wrap { position:relative; width:80px; height:80px; margin-bottom:22px; z-index:1; }
     #countdown-wrap svg { position:absolute; inset:0; transform:rotate(-90deg); }
-    #countdown-wrap svg circle.track { fill:none; stroke:rgba(255,255,255,0.08); stroke-width:4; }
-    #countdown-wrap svg circle.prog {
+    #countdown-wrap svg circle.track { fill:none; stroke:rgba(255,255,255,.08); stroke-width:4; }
+    #countdown-wrap svg circle.prog  {
       fill:none; stroke:var(--red); stroke-width:4;
       stroke-linecap:round; stroke-dasharray:188.5; stroke-dashoffset:0;
       transition:stroke-dashoffset 1s linear;
-      filter:drop-shadow(0 0 6px rgba(232,0,29,0.8));
+      filter:drop-shadow(0 0 6px rgba(232,0,29,.8));
     }
     #countdown-num {
       position:absolute; inset:0;
       display:flex; align-items:center; justify-content:center;
-      font-family:'Barlow Condensed',sans-serif;
-      font-size:30px; font-weight:800; color:#fff;
+      font-family:'Barlow Condensed',sans-serif; font-size:30px; font-weight:800; color:#fff;
     }
 
     #banner-tagline {
-      font-family:'Barlow Condensed',sans-serif;
-      font-size:13px; font-weight:700;
-      letter-spacing:3px; text-transform:uppercase;
-      color:rgba(255,255,255,0.5);
+      font-family:'Barlow Condensed',sans-serif; font-size:13px; font-weight:700;
+      letter-spacing:3px; text-transform:uppercase; color:rgba(255,255,255,.5);
       position:relative; z-index:1;
     }
     #banner-tagline em { font-style:normal; color:var(--red); }
 
-    /* "Loading stream" spinner below tagline */
     #banner-loading-row {
       display:flex; align-items:center; gap:8px;
-      margin-top:18px; z-index:1; position:relative;
+      margin-top:16px; z-index:1; position:relative;
     }
     .mini-spinner {
       width:16px; height:16px;
-      border:2px solid rgba(255,255,255,0.12);
-      border-top-color:var(--red); border-radius:50%;
-      animation:spin .7s linear infinite; flex-shrink:0;
+      border:2px solid rgba(255,255,255,.12); border-top-color:var(--red);
+      border-radius:50%; animation:spin .7s linear infinite; flex-shrink:0;
     }
     #banner-loading-row span {
-      font-family:'Barlow Condensed',sans-serif;
-      font-size:11px; font-weight:700;
-      letter-spacing:2.5px; text-transform:uppercase;
-      color:rgba(255,255,255,0.35);
+      font-family:'Barlow Condensed',sans-serif; font-size:11px; font-weight:700;
+      letter-spacing:2.5px; text-transform:uppercase; color:rgba(255,255,255,.3);
     }
 
     #skip-btn {
-      display:none; margin-top:26px;
-      padding:8px 24px;
-      border:1px solid rgba(255,255,255,0.25); border-radius:6px;
-      background:rgba(255,255,255,0.05); backdrop-filter:blur(6px);
-      color:#fff;
-      font-family:'Barlow Condensed',sans-serif;
-      font-size:13px; font-weight:700;
-      letter-spacing:2px; text-transform:uppercase;
-      cursor:pointer; transition:background .15s, border-color .15s;
+      display:none; margin-top:26px; padding:8px 24px;
+      border:1px solid rgba(255,255,255,.25); border-radius:6px;
+      background:rgba(255,255,255,.05); backdrop-filter:blur(6px);
+      color:#fff; font-family:'Barlow Condensed',sans-serif;
+      font-size:13px; font-weight:700; letter-spacing:2px; text-transform:uppercase;
+      cursor:pointer; transition:background .15s,border-color .15s;
       z-index:1; position:relative;
     }
-    #skip-btn:hover, #skip-btn:active { background:rgba(232,0,29,0.5); border-color:var(--red); }
+    #skip-btn:hover,#skip-btn:active { background:rgba(232,0,29,.5); border-color:var(--red); }
 
-    /* ── Full-page loader (used after banner during actual load) ── */
+    /* ── Loader (behind banner during banner phase, visible after) ── */
     #loader {
       position:absolute; inset:0;
       display:flex; flex-direction:column;
@@ -261,15 +197,13 @@
     #loader.hidden { opacity:0; pointer-events:none; }
     .spinner-ring {
       width:52px; height:52px;
-      border:3px solid rgba(255,255,255,0.08);
-      border-top-color:var(--red); border-radius:50%;
-      animation:spin .85s linear infinite;
+      border:3px solid rgba(255,255,255,.08); border-top-color:var(--red);
+      border-radius:50%; animation:spin .85s linear infinite;
     }
-    @keyframes spin { to { transform:rotate(360deg); } }
+    @keyframes spin { to{transform:rotate(360deg)} }
     #loader p {
-      font-family:'Barlow Condensed',sans-serif;
-      font-size:12px; letter-spacing:2px;
-      text-transform:uppercase; color:var(--gray);
+      font-family:'Barlow Condensed',sans-serif; font-size:12px;
+      letter-spacing:2px; text-transform:uppercase; color:var(--gray);
     }
 
     /* ── Error ── */
@@ -280,24 +214,21 @@
       gap:10px; z-index:48;
     }
     #error-msg.show { display:flex; }
-    #error-msg svg { width:40px; height:40px; fill:var(--red); opacity:.7; }
+    #error-msg svg  { width:40px; height:40px; fill:var(--red); opacity:.7; }
     #error-msg p {
-      font-family:'Barlow Condensed',sans-serif;
-      font-size:14px; letter-spacing:1.5px;
-      text-transform:uppercase; color:var(--gray);
+      font-family:'Barlow Condensed',sans-serif; font-size:14px;
+      letter-spacing:1.5px; text-transform:uppercase; color:var(--gray);
     }
 
-    /* ── Stats overlay (for debugging / power users) ── */
+    /* ── Stats overlay ── */
     #stats-overlay {
-      display:none;
-      position:absolute; top:60px; left:12px;
-      z-index:800; background:rgba(0,0,0,0.78);
-      border:1px solid rgba(232,0,29,0.4); border-radius:8px;
+      display:none; position:absolute; top:60px; left:12px;
+      z-index:800; background:rgba(0,0,0,.78);
+      border:1px solid rgba(232,0,29,.4); border-radius:8px;
       padding:10px 14px; backdrop-filter:blur(8px);
       font-family:'Barlow Condensed',sans-serif;
-      font-size:12px; color:rgba(255,255,255,0.8);
-      letter-spacing:.5px; line-height:1.8; pointer-events:none;
-      min-width:160px;
+      font-size:12px; color:rgba(255,255,255,.8);
+      letter-spacing:.5px; line-height:1.8; pointer-events:none; min-width:160px;
     }
     #stats-overlay.visible { display:block; }
     #stats-overlay b { color:var(--red); }
@@ -305,31 +236,27 @@
     /* ── Popup — desktop only ── */
     #popup {
       display:none; position:absolute; inset:0;
-      background:rgba(0,0,0,0.82); z-index:99999;
-      align-items:center; justify-content:center;
-      backdrop-filter:blur(4px);
+      background:rgba(0,0,0,.82); z-index:99999;
+      align-items:center; justify-content:center; backdrop-filter:blur(4px);
     }
     @media (hover:hover) and (pointer:fine) { #popup.show { display:flex; } }
     .popup-box {
       background:#111; border:1px solid var(--red); border-radius:16px;
       padding:28px 24px 22px; width:90%; max-width:300px;
       text-align:center; position:relative;
-      box-shadow:0 0 40px rgba(232,0,29,0.3);
+      box-shadow:0 0 40px rgba(232,0,29,.3);
       animation:popup-in .35s cubic-bezier(0.34,1.56,0.64,1) both;
     }
     @keyframes popup-in { from{transform:scale(.7);opacity:0} to{transform:scale(1);opacity:1} }
     .popup-close {
       position:absolute; top:-12px; right:-12px;
-      width:28px; height:28px;
-      background:var(--red); color:#fff;
-      border:none; border-radius:50%;
-      font-size:15px; font-weight:700;
+      width:28px; height:28px; background:var(--red); color:#fff;
+      border:none; border-radius:50%; font-size:15px; font-weight:700;
       cursor:pointer; display:flex; align-items:center; justify-content:center;
     }
     .popup-logo { width:54px; height:54px; border-radius:50%; margin-bottom:12px; }
     .popup-box h2 {
-      font-family:'Barlow Condensed',sans-serif;
-      font-size:22px; font-weight:800;
+      font-family:'Barlow Condensed',sans-serif; font-size:22px; font-weight:800;
       text-transform:uppercase; color:#fff; margin-bottom:6px;
     }
     .popup-box p { font-size:13px; color:var(--gray); line-height:1.5; margin-bottom:16px; }
@@ -337,9 +264,8 @@
       display:inline-flex; align-items:center; gap:8px;
       padding:10px 22px; background:var(--red); color:#fff;
       border-radius:8px; text-decoration:none;
-      font-family:'Barlow Condensed',sans-serif;
-      font-size:15px; font-weight:700; letter-spacing:.5px;
-      transition:background .15s;
+      font-family:'Barlow Condensed',sans-serif; font-size:15px; font-weight:700;
+      letter-spacing:.5px; transition:background .15s;
     }
     .popup-btn:hover { background:#c0001a; }
 
@@ -348,15 +274,14 @@
       display:none; position:absolute; bottom:70px; right:16px;
       z-index:9999; width:52px; height:52px; border-radius:50%;
       background:#0088cc; align-items:center; justify-content:center;
-      text-decoration:none;
-      box-shadow:0 2px 12px rgba(0,136,204,.5);
+      text-decoration:none; box-shadow:0 2px 12px rgba(0,136,204,.5);
       animation:tg-pulse 1.5s ease-out infinite;
     }
     #tg-fab svg { fill:#fff; width:26px; height:26px; }
     @keyframes tg-pulse {
-      0%   { box-shadow:0 0 0 0   rgba(0,136,204,.55); }
-      80%  { box-shadow:0 0 0 14px rgba(0,136,204,0);  }
-      100% { box-shadow:0 0 0 0   rgba(0,136,204,0);   }
+      0%  { box-shadow:0 0 0 0    rgba(0,136,204,.55); }
+      80% { box-shadow:0 0 0 14px rgba(0,136,204,0);   }
+      100%{ box-shadow:0 0 0 0    rgba(0,136,204,0);   }
     }
     @media (hover:none) and (pointer:coarse) { #tg-fab { display:flex; } }
 
@@ -370,16 +295,13 @@
 
 <div id="player-shell">
 
-  <!-- Shaka video container -->
+  <!-- Shaka -->
   <div id="shaka-container">
     <video id="shaka-video" autoplay playsinline></video>
   </div>
 
   <!-- Iframe fallback -->
-  <iframe id="iframe-el"
-    allowfullscreen
-    allow="autoplay; encrypted-media; picture-in-picture">
-  </iframe>
+  <iframe id="iframe-el" allowfullscreen allow="autoplay; encrypted-media; picture-in-picture"></iframe>
 
   <!-- Iframe overlay -->
   <div id="iframe-overlay">
@@ -394,20 +316,20 @@
     </button>
   </div>
 
-  <!-- Logo top-right (Shaka mode) -->
+  <!-- Brand logo top-right -->
   <div id="brand-logo">
     <a href="https://www.sportssnap.net" target="_blank" rel="noopener">
       <img src="https://i.ibb.co/0mLQWV1/sportssnap-net.png" alt="Sports Snap" onerror="this.style.display='none'">
     </a>
   </div>
 
-  <!-- Site label -->
+  <!-- Site bar -->
   <div id="site-bar"><span><em>sports</em>snap.net</span></div>
 
   <!-- Stats overlay -->
   <div id="stats-overlay"></div>
 
-  <!-- PRE-ROLL BANNER (also shown while stream loads) -->
+  <!-- BANNER — visible on page load, z-index 9000 -->
   <div id="banner">
     <img id="banner-logo" src="https://i.ibb.co/0mLQWV1/sportssnap-net.png" alt="Sports Snap" onerror="this.style.display='none'">
     <div id="countdown-wrap">
@@ -425,7 +347,7 @@
     <button id="skip-btn">Skip ›</button>
   </div>
 
-  <!-- Full-screen loader (after banner, before playback) -->
+  <!-- Loader (shown after banner while Shaka buffers) -->
   <div id="loader"><div class="spinner-ring"></div><p>Buffering stream…</p></div>
 
   <!-- Error -->
@@ -461,7 +383,6 @@
 (function () {
   'use strict';
 
-  /* ── DOM refs ── */
   const shell         = document.getElementById('player-shell');
   const iframeEl      = document.getElementById('iframe-el');
   const iframeOverlay = document.getElementById('iframe-overlay');
@@ -478,25 +399,25 @@
   const countdownNum  = document.getElementById('countdown-num');
   const statsOverlay  = document.getElementById('stats-overlay');
 
-  const CIRCUMFERENCE = 2 * Math.PI * 30;   // r=30
+  const CIRCUMFERENCE = 2 * Math.PI * 30;
   const BANNER_SECS   = 5;
   const SKIP_AFTER    = 3;
+  const FADE_DELAY_MS = 3500; // controls fade after this many ms of no movement
 
   const FS_ENTER = 'M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z';
   const FS_EXIT  = 'M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z';
 
   /* ── Helpers ── */
-  function showLoader(v)  { loader.classList.toggle('hidden', !v); }
+  function showLoader(v) { loader.classList.toggle('hidden', !v); }
   function showError(msg) {
     showLoader(false);
-    hideBanner();
+    dismissBanner();
     errorMsg.classList.add('show');
     if (msg) errorMsg.querySelector('p').textContent = msg;
   }
 
   function getParam(name) {
-    const escaped = name.replace(/[\[\]]/g,'\\$&');
-    const r = new RegExp('[?&]' + escaped + '(=([^&#]*)|&|#|$)').exec(location.href);
+    const r = new RegExp('[?&]' + name.replace(/[\[\]]/g,'\\$&') + '(=([^&#]*)|&|#|$)').exec(location.href);
     if (!r) return null;
     return r[2] ? decodeURIComponent(r[2].replace(/\+/g,' ')) : '';
   }
@@ -509,13 +430,30 @@
     return 'iframe';
   }
 
-  /* ══ PRE-ROLL BANNER ══ */
-  let bannerTimer  = null;
-  let bannerDoneCb = null;
+  /* ══ BANNER ══
+     Banner is displayed by default in HTML (no hidden class).
+     We start the countdown as soon as the page loads.
+     The banner stays up even while fetch + shaka init runs.
+     It only disappears after countdown (or skip) AND video is playing.
+  */
+  let bannerTimer   = null;
+  let bannerDone    = false;   // countdown finished
+  let videoPlaying  = false;   // video has started playing
 
-  function startBanner(onDone) {
-    bannerDoneCb = onDone;
-    banner.classList.remove('hidden');
+  function tryDismissBanner() {
+    // Only fade out when BOTH conditions are met
+    if (!bannerDone || !videoPlaying) return;
+    banner.classList.add('hiding');
+    setTimeout(() => banner.classList.add('gone'), 600);
+  }
+
+  function dismissBanner() {
+    // Force dismiss (error path)
+    banner.classList.add('hiding');
+    setTimeout(() => banner.classList.add('gone'), 600);
+  }
+
+  function startBannerCountdown() {
     let remaining = BANNER_SECS;
     progCircle.style.strokeDasharray  = CIRCUMFERENCE;
     progCircle.style.strokeDashoffset = 0;
@@ -525,218 +463,212 @@
       countdownNum.textContent = remaining;
       progCircle.style.strokeDashoffset = CIRCUMFERENCE * (1 - remaining / BANNER_SECS);
       if (remaining <= BANNER_SECS - SKIP_AFTER) skipBtn.style.display = 'inline-block';
-      if (remaining <= 0) { clearInterval(bannerTimer); finishBanner(); }
+      if (remaining <= 0) { clearInterval(bannerTimer); bannerDone = true; tryDismissBanner(); }
     }
     bannerTimer = setInterval(tick, 1000);
-    skipBtn.onclick = () => { clearInterval(bannerTimer); finishBanner(); };
+
+    skipBtn.onclick = () => {
+      clearInterval(bannerTimer);
+      bannerDone = true;
+      tryDismissBanner();
+    };
   }
 
-  function finishBanner() {
-    hideBanner();
-    if (bannerDoneCb) bannerDoneCb();
+  /* ══ CONTROLS AUTO-HIDE ══ */
+  let controlsEl   = null;   // set after Shaka UI is ready
+  let hideTimer    = null;
+
+  function showControls() {
+    if (!controlsEl) return;
+    controlsEl.classList.remove('ss-hidden');
+    clearTimeout(hideTimer);
+    hideTimer = setTimeout(() => {
+      if (!videoEl || videoEl.paused) return; // don't hide when paused
+      controlsEl.classList.add('ss-hidden');
+    }, FADE_DELAY_MS);
   }
 
-  /* Keep banner visible until video actually starts playing */
-  function hideBanner() { banner.classList.add('hidden'); }
+  let videoEl = null; // set after shaka init
 
-  /* ══ SHAKA PLAYER — fully featured, performance-tuned ══ */
+  shell.addEventListener('mousemove', showControls);
+  shell.addEventListener('touchstart', showControls, { passive:true });
+  shell.addEventListener('click', showControls);
+
+  /* ══ SHAKA INIT ══ */
   async function initShaka(url, drmConfig) {
     showLoader(true);
     errorMsg.classList.remove('show');
 
     shaka.polyfill.installAll();
+    if (!shaka.Player.isBrowserSupported()) { showError('Browser not supported'); return; }
 
-    if (!shaka.Player.isBrowserSupported()) {
-      showError('Browser not supported');
-      return;
-    }
+    videoEl          = document.getElementById('shaka-video');
+    const container  = document.getElementById('shaka-container');
 
-    const video     = document.getElementById('shaka-video');
-    const container = document.getElementById('shaka-container');
+    /* Player */
+    const player = new shaka.Player(videoEl);
 
-    /* 1 — Player attached to video element */
-    const player = new shaka.Player(video);
+    /* UI */
+    const ui = new shaka.ui.Overlay(player, container, videoEl);
 
-    /* 2 — UI overlay */
-    const ui = new shaka.ui.Overlay(player, container, video);
-
-    /* 3 — Full UI configuration with ALL controls */
+    /* UI config — clean control panel, extras in ⋮ */
     ui.configure({
       addSeekBar: true,
       addBigPlayButton: true,
       seekBarColors: {
-        base:     'rgba(255,255,255,0.3)',
-        buffered: 'rgba(255,255,255,0.54)',
+        base:     'rgba(255,255,255,0.25)',
+        buffered: 'rgba(255,255,255,0.5)',
         played:   '#e8001d',
       },
+      /* Clean bar: play | time | spacer | mute | vol | cast | pip | ⋮ | fullscreen */
       controlPanelElements: [
         'play_pause',
-        'rewind',             // 10s rewind
-        'fast_forward',       // 10s forward
         'time_and_duration',
         'spacer',
         'mute',
         'volume',
-        'quality',            // quality selector
-        'playback_rate',      // speed selector
-        'language',           // audio language
-        'captions',           // subtitle toggle
-        'cast',               // Chromecast
-        'picture_in_picture', // PiP
-        'overflow_menu',      // ⋮ menu
+        'cast',
+        'picture_in_picture',
+        'overflow_menu',
         'fullscreen',
       ],
+      /* Everything else lives in ⋮ overflow */
       overflowMenuButtons: [
         'quality',
         'captions',
-        'playback_rate',
         'language',
+        'playback_rate',
         'audio_and_captions',
-        'statistics',         // built-in stats panel
         'loop',
+        'statistics',
       ],
       statisticsList: [
-        'width', 'height', 'streamBandwidth', 'decodedFrames',
-        'droppedFrames', 'bufferingTime', 'loadLatency', 'corruptedFrames',
+        'width','height','streamBandwidth',
+        'decodedFrames','droppedFrames','bufferingTime','loadLatency',
       ],
-      fadeDelay: 3,
+      fadeDelay: 0,              // we handle fading ourselves
       enableFullscreenOnRotation: false,
       doubleClickForFullscreen: true,
       singleClickForPlayAndPause: true,
-      enableKeyboardPlaybackControls: true,   // spacebar, arrow keys, etc.
+      enableKeyboardPlaybackControls: true,
       enableTooltips: true,
       seekOnTaps: true,
       tapSeekDistance: 10,
-      playbackRates: [0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2],
-      fastForwardRates: [2, 4, 8, 16],
-      rewindRates: [-1, -2, -4, -8],
-      showUnbufferedStart: true,
+      playbackRates: [0.5, 0.75, 1, 1.25, 1.5, 2],
     });
 
-    /* 4 — Error listener */
+    /* Grab controls element after UI built */
+    controlsEl = container.querySelector('.shaka-controls-container');
+    if (controlsEl) {
+      controlsEl.classList.add('ss-hidden'); // start hidden; show on first move
+    }
+
+    /* Error */
     player.addEventListener('error', (e) => {
       console.error('Shaka error:', e.detail);
       showError('Stream unavailable');
     });
 
-    /* 5 — Performance & ABR tuning for fastest start */
+    /* Performance config */
     player.configure({
       streaming: {
-        // Fetch next segment aggressively
-        bufferingGoal: 30,             // seconds to buffer ahead
-        rebufferingGoal: 2,            // seconds before un-stalling
-        bufferBehind: 30,
-        safeSeekOffset: 3,
-        stallEnabled: true,
-        stallSkip: 0.1,
-        jumpLargeGaps: true,
-        largeGapLimit: 3,
-        // Low-latency helpers
-        inaccurateManifestTolerance: 2,
-        autoLowLatencyMode: true,
-        lowLatencyMode: false,
-        // Retry aggressively
+        bufferingGoal:              30,
+        rebufferingGoal:            2,
+        bufferBehind:               30,
+        jumpLargeGaps:              true,
+        largeGapLimit:              3,
+        stallEnabled:               true,
+        stallSkip:                  0.1,
+        autoLowLatencyMode:         true,
+        useNativeHlsOnSafari:       true,
         retryParameters: {
-          maxAttempts: 5,
-          baseDelay: 100,
-          backoffFactor: 1.5,
-          fuzzFactor: 0.5,
-          timeout: 30000,
+          maxAttempts:    5,
+          baseDelay:      100,
+          backoffFactor:  1.5,
+          fuzzFactor:     0.5,
+          timeout:        30000,
         },
-        // Prefer native HLS on Safari
-        useNativeHlsOnSafari: true,
       },
       abr: {
-        enabled: true,
-        useNetworkInformation: true,   // Network Info API for faster ABR
-        defaultBandwidthEstimate: 5e6, // start at 5 Mbps
+        enabled:                  true,
+        useNetworkInformation:    true,
+        defaultBandwidthEstimate: 5e6,
         bandwidthDowngradeTarget: 0.95,
-        bandwidthUpgradeTarget: 0.85,
-        minTimeToSwitch: 3,
-        // Start at a low quality and ramp up quickly
-        restrictions: {
-          minBandwidth: 0,
-          maxBandwidth: Infinity,
-        },
+        bandwidthUpgradeTarget:   0.85,
+        minTimeToSwitch:          3,
       },
       manifest: {
         retryParameters: {
-          maxAttempts: 5,
-          baseDelay: 100,
-          backoffFactor: 1.5,
-          fuzzFactor: 0.5,
-          timeout: 15000,
+          maxAttempts:    5,
+          baseDelay:      100,
+          backoffFactor:  1.5,
+          fuzzFactor:     0.5,
+          timeout:        15000,
         },
-        availabilityWindowOverride: NaN,
-        disableAudio: false,
-        disableVideo: false,
-        disableThumbnails: false,
       },
     });
 
-    /* 6 — DRM */
+    /* DRM */
     if (drmConfig) {
       if (drmConfig.clearkey) {
-        player.configure({
-          drm: { clearKeys: { [drmConfig.clearkey.keyId]: drmConfig.clearkey.key } }
-        });
+        player.configure({ drm:{ clearKeys:{ [drmConfig.clearkey.keyId]: drmConfig.clearkey.key } } });
       } else {
         player.configure({ drm: drmConfig });
       }
     }
 
-    /* 7 — Intercept Shaka's fullscreen button → use shell fullscreen */
+    /* Intercept Shaka's own fullscreen button */
     container.addEventListener('click', (e) => {
       const btn = e.target.closest(
         '.shaka-fullscreen-button,[aria-label="Fullscreen"],[aria-label="Exit Fullscreen"]'
       );
       if (!btn) return;
-      e.preventDefault();
-      e.stopImmediatePropagation();
+      e.preventDefault(); e.stopImmediatePropagation();
       isFullscreen() ? exitFullscreen() : goFullscreen();
     }, true);
 
-    /* 8 — Hide loader + banner as soon as video plays */
-    video.addEventListener('playing', () => {
-      hideBanner();
+    /* Hide loader + dismiss banner once video plays */
+    videoEl.addEventListener('playing', () => {
       showLoader(false);
+      videoPlaying = true;
+      tryDismissBanner();
+      showControls(); // reveal controls briefly on start
     }, { once: true });
 
-    /* 9 — Also show loader on re-buffer */
-    video.addEventListener('waiting', () => showLoader(true));
-    video.addEventListener('playing', () => showLoader(false));
+    /* Rebuffer indicator */
+    videoEl.addEventListener('waiting', () => showLoader(true));
+    videoEl.addEventListener('playing', () => showLoader(false));
 
-    /* 10 — Stats overlay (Shift+S to toggle) */
+    /* Pause → show controls permanently until play */
+    videoEl.addEventListener('pause',   () => { clearTimeout(hideTimer); if(controlsEl) controlsEl.classList.remove('ss-hidden'); });
+    videoEl.addEventListener('playing', () => showControls());
+
+    /* Shift+S stats */
     let statsInterval = null;
-    function updateStats() {
-      const s = player.getStats();
-      if (!s) return;
-      const bw = s.streamBandwidth ? (s.streamBandwidth / 1e6).toFixed(2) + ' Mbps' : '—';
-      const res = (s.width && s.height) ? `${s.width}×${s.height}` : '—';
-      statsOverlay.innerHTML =
-        `<b>Res</b> ${res}<br>` +
-        `<b>BW</b> ${bw}<br>` +
-        `<b>Decoded</b> ${s.decodedFrames ?? '—'}<br>` +
-        `<b>Dropped</b> ${s.droppedFrames ?? '—'}<br>` +
-        `<b>Buffer</b> ${s.bufferingTime ? s.bufferingTime.toFixed(1)+'s' : '—'}<br>` +
-        `<b>Latency</b> ${s.loadLatency ? s.loadLatency.toFixed(2)+'s' : '—'}`;
-    }
     document.addEventListener('keydown', (e) => {
       if (e.shiftKey && e.key === 'S') {
         statsOverlay.classList.toggle('visible');
         if (statsOverlay.classList.contains('visible')) {
-          updateStats();
-          statsInterval = setInterval(updateStats, 1000);
-        } else {
-          clearInterval(statsInterval);
-        }
+          const upd = () => {
+            const s = player.getStats();
+            if (!s) return;
+            statsOverlay.innerHTML =
+              `<b>Res</b> ${s.width||'—'}×${s.height||'—'}<br>` +
+              `<b>BW</b> ${s.streamBandwidth?(s.streamBandwidth/1e6).toFixed(2)+' Mbps':'—'}<br>` +
+              `<b>Decoded</b> ${s.decodedFrames??'—'}<br>` +
+              `<b>Dropped</b> ${s.droppedFrames??'—'}<br>` +
+              `<b>Buffer</b> ${s.bufferingTime?s.bufferingTime.toFixed(1)+'s':'—'}<br>` +
+              `<b>Latency</b> ${s.loadLatency?s.loadLatency.toFixed(2)+'s':'—'}`;
+          };
+          upd(); statsInterval = setInterval(upd, 1000);
+        } else { clearInterval(statsInterval); }
       }
     });
 
-    /* 11 — Load & play */
+    /* Load + play */
     try {
       await player.load(url);
-      video.play().catch(() => {});
+      videoEl.play().catch(() => {});
       showLoader(false);
     } catch (err) {
       console.error('Shaka load error:', err);
@@ -744,12 +676,11 @@
     }
   }
 
-  /* ══ IFRAME FALLBACK ══ */
+  /* ══ IFRAME ══ */
   function loadIframe(url, sandbox) {
     brandLogo.classList.add('hidden');
     if (sandbox === true || sandbox === 'yes' || sandbox === 1) {
-      iframeEl.setAttribute('sandbox',
-        'allow-scripts allow-same-origin allow-presentation allow-orientation-lock');
+      iframeEl.setAttribute('sandbox','allow-scripts allow-same-origin allow-presentation allow-orientation-lock');
     } else {
       iframeEl.removeAttribute('sandbox');
     }
@@ -757,7 +688,9 @@
     iframeEl.style.display = 'block';
     iframeOverlay.classList.add('active');
     showLoader(false);
-    hideBanner();
+    // For iframes mark video as "playing" so banner can dismiss after countdown
+    videoPlaying = true;
+    tryDismissBanner();
   }
 
   /* ══ MAIN ══ */
@@ -765,43 +698,40 @@
     const key = getParam('sportssnap');
     if (!key) { showLoader(false); showError('No stream key provided'); return; }
 
-    showLoader(true);
+    // Start countdown immediately — fetch runs in parallel
+    startBannerCountdown();
+    showLoader(false); // hide loader behind the banner; it'll show after banner gone
 
-    startBanner(async () => {
-      showLoader(true);  // keep loader visible while stream fetches
-      try {
-        const resp = await fetch('https://sportssnap.github.io/playlist/stream.json', {
-          cache: 'no-cache',
-        });
-        const data = await resp.json();
-        const stream = data[key];
-        if (!stream) { showError('Stream unavailable'); return; }
+    try {
+      const resp   = await fetch('https://sportssnap.github.io/playlist/stream.json', { cache:'no-cache' });
+      const data   = await resp.json();
+      const stream = data[key];
+      if (!stream) { showError('Stream unavailable'); return; }
 
-        let url, drmConfig = null, type, sandboxFlag = false;
+      let url, drmConfig = null, type, sandboxFlag = false;
 
-        if (typeof stream === 'string') {
-          url  = stream;
-          type = detectType(url);
-        } else {
-          url         = stream.url || stream.iframe || '';
-          sandboxFlag = stream.sandbox || false;
-          if (stream.drm && stream.drm.clearKeys) {
-            const [[kId, k]] = Object.entries(stream.drm.clearKeys);
-            drmConfig = { clearkey: { keyId: kId, key: k } };
-          } else if (stream.drm) {
-            drmConfig = stream.drm;
-          }
-          type = (stream.iframe || stream.type === 'iframe') ? 'iframe' : detectType(url);
+      if (typeof stream === 'string') {
+        url  = stream;
+        type = detectType(url);
+      } else {
+        url         = stream.url || stream.iframe || '';
+        sandboxFlag = stream.sandbox || false;
+        if (stream.drm && stream.drm.clearKeys) {
+          const [[kId, k]] = Object.entries(stream.drm.clearKeys);
+          drmConfig = { clearkey:{ keyId: kId, key: k } };
+        } else if (stream.drm) {
+          drmConfig = stream.drm;
         }
-
-        if (type === 'iframe') loadIframe(url, sandboxFlag);
-        else                   initShaka(url, drmConfig);
-
-      } catch (err) {
-        console.error('loadStream error:', err);
-        showError('Stream unavailable');
+        type = (stream.iframe || stream.type === 'iframe') ? 'iframe' : detectType(url);
       }
-    });
+
+      if (type === 'iframe') loadIframe(url, sandboxFlag);
+      else                   initShaka(url, drmConfig);
+
+    } catch (err) {
+      console.error('loadStream error:', err);
+      showError('Stream unavailable');
+    }
   }
 
   /* ══ FULLSCREEN ══ */
@@ -810,7 +740,7 @@
     else if (shell.webkitRequestFullscreen) shell.webkitRequestFullscreen();
     else if (shell.mozRequestFullScreen)    shell.mozRequestFullScreen();
     if (screen.orientation && screen.orientation.lock)
-      screen.orientation.lock('landscape').catch(() => {});
+      screen.orientation.lock('landscape').catch(()=>{});
   }
   function exitFullscreen() {
     if      (document.exitFullscreen)       document.exitFullscreen();
@@ -818,16 +748,13 @@
     else if (document.mozCancelFullScreen)  document.mozCancelFullScreen();
   }
   function isFullscreen() {
-    return !!(document.fullscreenElement ||
-              document.webkitFullscreenElement ||
-              document.mozFullScreenElement);
+    return !!(document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement);
   }
 
   iframeFsBtn.addEventListener('click', () => isFullscreen() ? exitFullscreen() : goFullscreen());
 
   function onFsChange() {
-    if (!isFullscreen() && screen.orientation && screen.orientation.unlock)
-      screen.orientation.unlock();
+    if (!isFullscreen() && screen.orientation && screen.orientation.unlock) screen.orientation.unlock();
     const d = iframeFsIcon.querySelector('path');
     if (d) d.setAttribute('d', isFullscreen() ? FS_EXIT : FS_ENTER);
   }
