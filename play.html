@@ -18,290 +18,202 @@
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800&family=Barlow:wght@400;500&display=swap');
 
-    :root {
-      --red: #e8001d;
-      --gray: rgba(255,255,255,0.55);
-    }
+    :root { --red:#e8001d; --gray:rgba(255,255,255,0.55); }
 
     *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
 
     html, body {
       width:100%; height:100%;
-      background:#000;
-      overflow:hidden;
+      background:#000; overflow:hidden;
       font-family:'Barlow', sans-serif;
-      -webkit-tap-highlight-color: transparent;
-      user-select: none;
+      -webkit-tap-highlight-color:transparent;
+      user-select:none;
     }
 
     #player-shell {
-      position: relative;
-      width: 100%; height: 100%;
-      background: #000;
-      overflow: hidden;
+      position:relative; width:100%; height:100%;
+      background:#000; overflow:hidden;
     }
 
-    /* ── JW wrapper ── */
+    /* ══ JW wrapper ══ */
     #jw-wrapper {
-      position: absolute;
-      inset: 0;
-      background: #000;
-      display: none;
+      position:absolute; inset:0;
+      background:#000; display:none;
     }
-    #jw-wrapper.active { display: block; }
-    #jw-player-el {
-      width: 100% !important;
-      height: 100% !important;
-    }
+    #jw-wrapper.active { display:block; }
 
-    /* ── Shaka wrapper ── */
-    #shaka-wrapper {
-      position: absolute;
-      inset: 0;
-      background: #000;
-      display: none;
-    }
-    #shaka-wrapper.active { display: block; }
+    #jw-player-el { width:100% !important; height:100% !important; }
 
-    #shaka-container {
-      position: relative;
-      width: 100%;
-      height: 100%;
-    }
-
-    #shaka-video {
-      width: 100%;
-      height: 100%;
-      background: #000;
-      display: block;
-    }
-
-    /* Override Shaka UI theme to match Sports Snap red */
-    .shaka-controls-container {
-      --shaka-highlight-color: #e8001d !important;
-    }
-    .shaka-play-button {
-      background-color: rgba(232,0,29,0.85) !important;
-    }
-    .shaka-range-element::-webkit-slider-thumb {
-      background: #e8001d !important;
-    }
-    .shaka-range-element::-moz-range-thumb {
-      background: #e8001d !important;
-    }
-    /* Shaka progress bar fill */
-    .shaka-buffered-ahead,
-    .shaka-current-time { color: #e8001d !important; }
-
-    /* ── Shaka Branding Overlay ── */
-    #shaka-brand {
-      position: absolute;
-      inset: 0;
-      pointer-events: none;
-      z-index: 10;
-    }
-
-    /* Logo — top-right, same style as JW */
-    #shaka-logo {
-      position: absolute;
-      top: 12px;
-      right: 14px;
-      pointer-events: all;
-    }
-    #shaka-logo a {
-      display: block;
-      text-decoration: none;
-    }
-    #shaka-logo img {
-      width: 100px;
-      height: auto;
-      display: block;
-      filter: drop-shadow(0 2px 8px rgba(0,0,0,0.8));
-      opacity: 0.92;
-    }
-
-    /* Site label — bottom center, same as JW version */
-    #shaka-label {
-      position: absolute;
-      left: 0; right: 0;
-      bottom: 62px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      pointer-events: none;
-    }
-    #shaka-label span {
-      font-family: 'Barlow Condensed', sans-serif;
-      font-size: 13px;
-      font-weight: 700;
-      letter-spacing: 2.5px;
-      text-transform: uppercase;
-      color: rgba(255,255,255,0.75);
-      text-shadow: 0 1px 6px rgba(0,0,0,0.9);
-    }
-    #shaka-label span em {
-      font-style: normal;
-      color: var(--red);
-    }
-
-    /* ── Iframe fallback (shared) ── */
+    /* ── Iframe fallback inside JW ── */
     #iframe-el {
-      position: absolute;
-      inset: 0;
-      width: 100%; height: 100%;
-      border: none;
-      background: #000;
-      display: none;
-      z-index: 5;
+      position:absolute; inset:0;
+      width:100%; height:100%;
+      border:none; background:#000;
+      display:none; z-index:5;
     }
 
     /* ── Iframe overlay ── */
     #iframe-overlay {
-      display: none;
-      position: absolute;
-      inset: 0;
-      z-index: 20;
-      pointer-events: none;
+      display:none; position:absolute; inset:0;
+      z-index:20; pointer-events:none;
     }
-    #iframe-overlay.active { display: block; }
+    #iframe-overlay.active { display:block; }
 
     #iframe-overlay .ov-logo {
-      position: absolute;
-      top: 12px; right: 14px;
-      pointer-events: none;
+      position:absolute; top:15px; left:20px; pointer-events:none;
     }
     #iframe-overlay .ov-logo img {
-      width: 100px; height: auto; display: block;
-      filter: drop-shadow(0 2px 8px rgba(0,0,0,0.7));
+      width:120px; height:auto; display:block;
+      filter:drop-shadow(0 2px 8px rgba(0,0,0,0.7));
     }
-
     #iframe-overlay .ov-fs-btn {
-      position: absolute;
-      bottom: 10px; right: 10px;
-      pointer-events: all;
-      width: 44px; height: 44px;
-      background: rgba(0,0,0,0.7);
-      border: 1px solid rgba(255,255,255,0.25);
-      border-radius: 8px;
-      display: flex; align-items: center; justify-content: center;
-      cursor: pointer;
-      transition: background 0.15s;
-      backdrop-filter: blur(6px);
-      -webkit-backdrop-filter: blur(6px);
-      touch-action: manipulation;
+      position:absolute; bottom:10px; right:10px;
+      pointer-events:all;
+      width:44px; height:44px;
+      background:rgba(0,0,0,0.7);
+      border:1px solid rgba(255,255,255,0.25);
+      border-radius:8px;
+      display:flex; align-items:center; justify-content:center;
+      cursor:pointer; transition:background .15s;
+      backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);
+      touch-action:manipulation;
     }
     #iframe-overlay .ov-fs-btn:hover,
-    #iframe-overlay .ov-fs-btn:active { background: rgba(232,0,29,0.6); border-color: var(--red); }
-    #iframe-overlay .ov-fs-btn svg { width: 22px; height: 22px; fill: #fff; }
+    #iframe-overlay .ov-fs-btn:active { background:rgba(232,0,29,0.6); border-color:var(--red); }
+    #iframe-overlay .ov-fs-btn svg { width:22px; height:22px; fill:#fff; }
 
-    @media (hover: none) and (pointer: coarse) {
-      #iframe-overlay .ov-fs-btn {
-        width: 52px; height: 52px;
-        bottom: 14px; right: 14px;
-        background: rgba(0,0,0,0.75);
-        border-color: rgba(232,0,29,0.6);
-      }
-      #iframe-overlay .ov-fs-btn svg { width: 26px; height: 26px; }
-      #iframe-overlay .ov-logo img { width: 80px; }
+    @media (hover:none) and (pointer:coarse) {
+      #iframe-overlay .ov-fs-btn { width:52px; height:52px; bottom:14px; right:14px; background:rgba(0,0,0,0.75); border-color:rgba(232,0,29,0.6); }
+      #iframe-overlay .ov-fs-btn svg { width:26px; height:26px; }
+      #iframe-overlay .ov-logo img { width:80px; }
     }
 
-    /* ── SITE LABEL (JW / iframe) ── */
+    /* ══ Shaka wrapper ══ */
+    #shaka-wrapper {
+      position:absolute; inset:0;
+      background:#000; display:none;
+    }
+    #shaka-wrapper.active { display:block; }
+
+    #shaka-container {
+      position:relative; width:100%; height:100%;
+    }
+    #shaka-video {
+      width:100%; height:100%;
+      background:#000; display:block;
+    }
+
+    /* Shaka red theme */
+    .shaka-controls-container { --shaka-highlight-color:#e8001d !important; }
+    .shaka-play-button { background-color:rgba(232,0,29,0.85) !important; }
+    .shaka-range-element::-webkit-slider-thumb { background:#e8001d !important; }
+    .shaka-range-element::-moz-range-thumb { background:#e8001d !important; }
+
+    /* Shaka branding overlay */
+    #shaka-brand {
+      position:absolute; inset:0;
+      pointer-events:none; z-index:10;
+    }
+    #shaka-logo {
+      position:absolute; top:12px; right:14px;
+      pointer-events:all;
+    }
+    #shaka-logo a { display:block; text-decoration:none; }
+    #shaka-logo img {
+      width:100px; height:auto; display:block;
+      filter:drop-shadow(0 2px 8px rgba(0,0,0,0.8));
+      opacity:0.92;
+    }
+    #shaka-label {
+      position:absolute; left:0; right:0; bottom:62px;
+      display:flex; align-items:center; justify-content:center;
+      pointer-events:none;
+    }
+    #shaka-label span {
+      font-family:'Barlow Condensed',sans-serif;
+      font-size:13px; font-weight:700;
+      letter-spacing:2.5px; text-transform:uppercase;
+      color:rgba(255,255,255,0.75);
+      text-shadow:0 1px 6px rgba(0,0,0,0.9);
+    }
+    #shaka-label span em { font-style:normal; color:var(--red); }
+
+    /* ══ SITE LABEL (JW/iframe mode) ══ */
     #site-bar {
-      position: absolute;
-      left: 0; right: 0;
-      bottom: 62px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 9999;
-      pointer-events: none;
+      position:absolute; left:0; right:0; bottom:62px;
+      display:flex; align-items:center; justify-content:center;
+      z-index:9999; pointer-events:none;
     }
     #site-bar span {
-      font-family: 'Barlow Condensed', sans-serif;
-      font-size: 13px;
-      font-weight: 700;
-      letter-spacing: 2.5px;
-      text-transform: uppercase;
-      color: rgba(255,255,255,0.75);
-      text-shadow: 0 1px 6px rgba(0,0,0,0.9);
+      font-family:'Barlow Condensed',sans-serif;
+      font-size:13px; font-weight:700;
+      letter-spacing:2.5px; text-transform:uppercase;
+      color:rgba(255,255,255,0.75);
+      text-shadow:0 1px 6px rgba(0,0,0,0.9);
     }
-    #site-bar span em { font-style: normal; color: var(--red); }
+    #site-bar span em { font-style:normal; color:var(--red); }
 
-    /* ── Loader ── */
+    /* ══ Loader ══ */
     #loader {
-      position: absolute;
-      inset: 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      background: #000;
-      z-index: 50;
-      gap: 16px;
-      transition: opacity 0.4s;
+      position:absolute; inset:0;
+      display:flex; flex-direction:column;
+      align-items:center; justify-content:center;
+      background:#000; z-index:50; gap:16px;
+      transition:opacity 0.4s;
     }
     #loader.hidden { opacity:0; pointer-events:none; }
     .spinner-ring {
-      width: 48px; height: 48px;
-      border: 3px solid rgba(255,255,255,0.08);
-      border-top-color: var(--red);
-      border-radius: 50%;
-      animation: spin 0.9s linear infinite;
+      width:48px; height:48px;
+      border:3px solid rgba(255,255,255,0.08);
+      border-top-color:var(--red);
+      border-radius:50%;
+      animation:spin 0.9s linear infinite;
     }
-    @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes spin { to { transform:rotate(360deg); } }
     #loader p {
-      font-family: 'Barlow Condensed', sans-serif;
-      font-size: 12px; letter-spacing: 2px;
-      text-transform: uppercase; color: var(--gray);
+      font-family:'Barlow Condensed',sans-serif;
+      font-size:12px; letter-spacing:2px;
+      text-transform:uppercase; color:var(--gray);
     }
 
-    /* ── Error ── */
+    /* ══ Error ══ */
     #error-msg {
-      position: absolute;
-      inset: 0;
-      display: none;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 10px; z-index: 48;
+      position:absolute; inset:0;
+      display:none; flex-direction:column;
+      align-items:center; justify-content:center;
+      gap:10px; z-index:48;
     }
-    #error-msg.show { display: flex; }
-    #error-msg svg { width: 40px; height: 40px; fill: var(--red); opacity: 0.7; }
+    #error-msg.show { display:flex; }
+    #error-msg svg { width:40px; height:40px; fill:var(--red); opacity:0.7; }
     #error-msg p {
-      font-family: 'Barlow Condensed', sans-serif;
-      font-size: 14px; letter-spacing: 1.5px;
-      text-transform: uppercase; color: var(--gray);
+      font-family:'Barlow Condensed',sans-serif;
+      font-size:14px; letter-spacing:1.5px;
+      text-transform:uppercase; color:var(--gray);
     }
 
-    /* ── Telegram FAB — all devices ── */
+    /* ══ Telegram FAB ══ */
     #tg-fab {
-      display: flex;
-      position: absolute;
-      bottom: 70px;
-      right: 16px;
-      z-index: 9999;
-      width: 52px; height: 52px;
-      border-radius: 50%;
-      background: #0088cc;
-      align-items: center;
-      justify-content: center;
-      text-decoration: none;
-      box-shadow: 0 2px 12px rgba(0,136,204,0.5);
-      animation: tg-pulse 1.5s ease-out infinite;
+      display:flex; position:absolute;
+      bottom:70px; right:16px; z-index:9999;
+      width:52px; height:52px; border-radius:50%;
+      background:#0088cc;
+      align-items:center; justify-content:center;
+      text-decoration:none;
+      box-shadow:0 2px 12px rgba(0,136,204,0.5);
+      animation:tg-pulse 1.5s ease-out infinite;
     }
-    #tg-fab svg { fill: #fff; width: 26px; height: 26px; }
+    #tg-fab svg { fill:#fff; width:26px; height:26px; }
     @keyframes tg-pulse {
-      0%   { box-shadow: 0 0 0 0 rgba(0,136,204,0.55); }
-      80%  { box-shadow: 0 0 0 14px rgba(0,136,204,0); }
-      100% { box-shadow: 0 0 0 0 rgba(0,136,204,0); }
+      0%   { box-shadow:0 0 0 0 rgba(0,136,204,0.55); }
+      80%  { box-shadow:0 0 0 14px rgba(0,136,204,0); }
+      100% { box-shadow:0 0 0 0 rgba(0,136,204,0); }
     }
 
-    /* ── Fullscreen ── */
+    /* ══ Fullscreen ══ */
     #player-shell:fullscreen,
     #player-shell:-webkit-full-screen,
     #player-shell:-moz-full-screen {
-      width: 100vw !important;
-      height: 100vh !important;
+      width:100vw !important; height:100vh !important;
     }
   </style>
 </head>
@@ -309,7 +221,7 @@
 
 <div id="player-shell">
 
-  <!-- JW Player wrapper -->
+  <!-- ══ JW Player wrapper ══ -->
   <div id="jw-wrapper">
     <div id="jw-player-el">Loading player…</div>
     <iframe id="iframe-el" allowfullscreen allow="autoplay; encrypted-media; picture-in-picture"></iframe>
@@ -323,28 +235,23 @@
     </div>
   </div>
 
-  <!-- Shaka Player wrapper -->
+  <!-- ══ Shaka Player wrapper ══ -->
   <div id="shaka-wrapper">
-    <div id="shaka-container" data-shaka-player-container data-shaka-player-cast-receiver-id="CC1AD845">
+    <div id="shaka-container" data-shaka-player-container>
       <video id="shaka-video" data-shaka-player autoplay playsinline></video>
     </div>
-    <!-- Branding overlay -->
     <div id="shaka-brand">
       <div id="shaka-logo">
         <a href="https://www.sportssnap.net" target="_blank" rel="noopener">
           <img src="https://i.ibb.co/0mLQWV1/sportssnap-net.png" alt="Sports Snap" onerror="this.style.display='none'">
         </a>
       </div>
-      <div id="shaka-label">
-        <span><em>sports</em>snap.net</span>
-      </div>
+      <div id="shaka-label"><span><em>sports</em>snap.net</span></div>
     </div>
   </div>
 
-  <!-- Site label (JW/iframe mode) -->
-  <div id="site-bar">
-    <span><em>sports</em>snap.net</span>
-  </div>
+  <!-- Site label (JW/iframe only) -->
+  <div id="site-bar"><span><em>sports</em>snap.net</span></div>
 
   <!-- Loader / Error -->
   <div id="loader"><div class="spinner-ring"></div><p>Loading stream…</p></div>
@@ -385,22 +292,18 @@
     if (msg) errorMsg.querySelector('p').textContent = msg;
   }
 
-  /* ── URL param helper — matches ?jw-sportssnap=, ?shaka-sportssnap=, or legacy ?sportssnap= ── */
-  function getParams() {
-    const search = window.location.search;
-    const get = (name) => {
-      const m = new RegExp('[?&]' + name.replace(/[\[\]]/g,'\\$&') + '=([^&#]*)').exec(search);
-      return m ? decodeURIComponent(m[1].replace(/\+/g,' ')) : null;
-    };
-    const jwKey    = get('jw-sportssnap');
-    const shakaKey = get('shaka-sportssnap');
-    const legacyKey = get('sportssnap');
-    return {
-      mode:  jwKey ? 'jw' : shakaKey ? 'shaka' : legacyKey ? 'jw' : null,
-      key:   jwKey || shakaKey || legacyKey || null,
-      link:  get('link')
-    };
+  /* ── Parse params: support ?sportssnap=, ?jw-sportssnap=, ?shaka-sportssnap= ── */
+  function getParam(name) {
+    const m = new RegExp('[?&]' + name.replace(/[\[\]]/g,'\\$&') + '=([^&#]*)').exec(window.location.search);
+    return m ? decodeURIComponent(m[1].replace(/\+/g,' ')) : null;
   }
+
+  const jwKey    = getParam('jw-sportssnap');
+  const shakaKey = getParam('shaka-sportssnap');
+  const legacyKey= getParam('sportssnap');
+
+  const mode = jwKey ? 'jw' : shakaKey ? 'shaka' : 'jw';
+  const key  = jwKey || shakaKey || legacyKey;
 
   function detectType(url) {
     if (!url) return 'unknown';
@@ -411,84 +314,71 @@
   }
 
   /* ══════════════════════════════════════════
-     JW PLAYER
+     JW — iframe fallback
   ══════════════════════════════════════════ */
   function loadIframe(url, sandbox) {
     document.getElementById('jw-player-el').style.display = 'none';
     iframeEl.style.display = 'block';
-    if (sandbox === true || sandbox === 'yes' || sandbox === 1) {
-      iframeEl.setAttribute('sandbox','allow-scripts allow-same-origin allow-presentation allow-orientation-lock');
-    } else {
-      iframeEl.removeAttribute('sandbox');
-    }
+    sandbox
+      ? iframeEl.setAttribute('sandbox','allow-scripts allow-same-origin allow-presentation allow-orientation-lock')
+      : iframeEl.removeAttribute('sandbox');
     iframeEl.src = url;
     iframeOverlay.classList.add('active');
     showLoader(false);
   }
 
+  /* ══════════════════════════════════════════
+     JW — native HLS/DASH
+  ══════════════════════════════════════════ */
   function initJW(url, type, drmConfig, meta) {
     showLoader(true);
     errorMsg.classList.remove('show');
     jwplayer.key = 'XSuP4qMl+9tK17QNb+4+th2Pm9AWgMO/cYH8CI0HGGr7bdjo';
 
     const sources = [];
-    if (type === 'hls')       sources.push({ file: url, type: 'hls',  label: 'HLS',  default: true });
-    else if (type === 'dash') sources.push({ file: url, type: 'dash', label: 'DASH', default: true });
-    else                      sources.push({ file: url, default: true });
+    if (type === 'hls')       sources.push({ file:url, type:'hls',  label:'HLS',  default:true });
+    else if (type === 'dash') sources.push({ file:url, type:'dash', label:'DASH', default:true });
+    else                      sources.push({ file:url, default:true });
 
     const setup = {
-      playlist: [{
-        title: meta.title || '',
-        description: 'Sports Snap Live',
-        image: meta.image || 'https://i.ibb.co/0mLQWV1/sportssnap-net.png',
-        sources
-      }],
-      width: '100%', height: '100%',
-      autostart: true, mute: false, cast: {},
-      logo: {
-        file: 'https://i.ibb.co/0mLQWV1/sportssnap-net.png',
-        link: 'https://www.sportssnap.net',
-        position: 'top-right'
-      },
-      skin: { name: 'netflix' },
-      sharing: { link: 'https://t.me/sportssnapofficial' },
-      hlsjsConfig: { debug: false, p2pConfig: { live: true } }
+      playlist:[{ title:meta.title||'', description:'Sports Snap Live',
+        image:meta.image||'https://i.ibb.co/0mLQWV1/sportssnap-net.png', sources }],
+      width:'100%', height:'100%', autostart:true, mute:false, cast:{},
+      logo:{ file:'https://i.ibb.co/0mLQWV1/sportssnap-net.png',
+             link:'https://www.sportssnap.net', position:'top-right' },
+      skin:{ name:'netflix' },
+      sharing:{ link:'https://t.me/sportssnapofficial' },
+      hlsjsConfig:{ debug:false, p2pConfig:{ live:true } }
     };
     if (drmConfig) setup.drm = drmConfig;
 
     const player = jwplayer('jw-player-el');
     player.setup(setup);
-    player.on('ready', () => showLoader(false));
+    player.on('ready',      () => showLoader(false));
     player.on('error',      (e) => { console.error('JW Error:', e); showError('Stream unavailable'); });
-    player.on('setupError', (e) => { console.error('JW Setup Error:', e); showError('Stream unavailable'); });
+    player.on('setupError', (e) => { console.error('JW Setup:', e); showError('Stream unavailable'); });
   }
 
   /* ══════════════════════════════════════════
-     SHAKA PLAYER
+     SHAKA
   ══════════════════════════════════════════ */
-  async function initShaka(url, type, drmConfig, meta) {
+  async function initShaka(url, drmConfig) {
     showLoader(true);
     errorMsg.classList.remove('show');
 
     shaka.polyfill.installAll();
-    if (!shaka.Player.isBrowserSupported()) {
-      showError('Browser not supported');
-      return;
-    }
+    if (!shaka.Player.isBrowserSupported()) { showError('Browser not supported'); return; }
 
     const video     = document.getElementById('shaka-video');
     const container = document.getElementById('shaka-container');
+    const ui        = new shaka.ui.Overlay(null, container, video);
+    const player    = ui.getPlayer();
 
-    const ui     = new shaka.ui.Overlay(null, container, video);
-    const player = ui.getPlayer();
-    const controls = ui.getControls();
-
-    // Shaka UI config — minimal, clean
     ui.configure({
       addSeekBar: true,
       addBigPlayButton: true,
       controlPanelElements: ['play_pause','time_and_duration','spacer','mute','volume','fullscreen'],
-      overflowMenuButtons: ['quality','captions','cast','playback_rate'],
+      overflowMenuButtons: ['quality','captions','playback_rate'],
       fadeDelay: 3
     });
 
@@ -497,14 +387,9 @@
       showError('Stream unavailable');
     });
 
-    // DRM
     if (drmConfig) {
       if (drmConfig.clearkey) {
-        player.configure({
-          drm: {
-            clearKeys: { [drmConfig.clearkey.keyId]: drmConfig.clearkey.key }
-          }
-        });
+        player.configure({ drm:{ clearKeys:{ [drmConfig.clearkey.keyId]: drmConfig.clearkey.key } } });
       } else {
         player.configure({ drm: drmConfig });
       }
@@ -521,21 +406,20 @@
   }
 
   /* ══════════════════════════════════════════
-     STREAM LOADER (shared JSON)
+     MAIN LOADER
   ══════════════════════════════════════════ */
   async function loadStream() {
-    const { mode, key } = getParams();
-    if (!key || !mode) { showLoader(false); showError('No stream key provided'); return; }
+    if (!key) { showLoader(false); showError('No stream key provided'); return; }
 
     showLoader(true);
 
-    // Activate the right wrapper
-    if (mode === 'jw') {
+    /* Activate the correct wrapper */
+    if (mode === 'shaka') {
+      shakaWrapper.classList.add('active');
+      siteBar.style.display = 'none'; /* Shaka has its own label */
+    } else {
       jwWrapper.classList.add('active');
       siteBar.style.display = 'flex';
-    } else {
-      shakaWrapper.classList.add('active');
-      siteBar.style.display = 'none'; // Shaka has its own label overlay
     }
 
     try {
@@ -544,18 +428,18 @@
       if (!stream) { showError('Stream unavailable'); return; }
 
       let url, drmConfig = null, type, sandboxFlag = false;
-      const meta = { title: '', image: '' };
+      const meta = { title:'', image:'' };
 
       if (typeof stream === 'string') {
         url  = stream;
         type = detectType(url);
       } else {
         url          = stream.url || stream.iframe || '';
-        meta.title   = stream.title || '';
-        meta.image   = stream.image || '';
+        meta.title   = stream.title  || '';
+        meta.image   = stream.image  || '';
         if (stream.drm && stream.drm.clearKeys) {
-          const [[keyId, k]] = Object.entries(stream.drm.clearKeys);
-          drmConfig = { clearkey: { keyId, key: k } };
+          const [[kId, k]] = Object.entries(stream.drm.clearKeys);
+          drmConfig = { clearkey:{ keyId:kId, key:k } };
         } else if (stream.drm) {
           drmConfig = stream.drm;
         }
@@ -563,22 +447,21 @@
         type = (stream.iframe || stream.type === 'iframe') ? 'iframe' : detectType(url);
       }
 
-      if (mode === 'jw') {
-        if (type === 'iframe') loadIframe(url, sandboxFlag);
-        else                   initJW(url, type, drmConfig, meta);
-      } else {
-        // Shaka: if it's an iframe URL, fall back to iframe inside shaka wrapper
+      if (mode === 'shaka') {
         if (type === 'iframe') {
-          shakaWrapper.innerHTML = '';
+          /* Shaka fallback: show iframe directly inside shaka wrapper */
           const ifr = document.createElement('iframe');
           ifr.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;border:none;background:#000;z-index:5;';
           ifr.allowFullscreen = true;
           ifr.src = url;
-          shakaWrapper.appendChild(ifr);
+          document.getElementById('shaka-container').appendChild(ifr);
           showLoader(false);
         } else {
-          initShaka(url, type, drmConfig, meta);
+          initShaka(url, drmConfig);
         }
+      } else {
+        if (type === 'iframe') loadIframe(url, sandboxFlag);
+        else                   initJW(url, type, drmConfig, meta);
       }
 
     } catch (err) {
@@ -626,7 +509,7 @@
   document.addEventListener('webkitfullscreenchange', onFsChange);
   document.addEventListener('mozfullscreenchange',    onFsChange);
 
-  /* ── Boot ── */
+  /* Boot */
   window.addEventListener('load', loadStream);
 })();
 </script>
